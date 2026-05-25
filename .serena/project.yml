@@ -173,7 +173,7 @@ symbol_info_budget: 8
 # Extends the list from the global configuration, merging the two lists.
 # Protect memory_maintenance as the source of project conventions — prevent accidental agent overwrites
 read_only_memory_patterns:
-  - "memory_maintenance"
+  - 'memory_maintenance'
 
 # list of regex patterns for memories to completely ignore.
 # Matching memories will not appear in list_memories or activate_project output
