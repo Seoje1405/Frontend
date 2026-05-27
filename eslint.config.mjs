@@ -14,6 +14,12 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // Custom ignores:
+    'obsidian/**',
+    'icc_command/**',
+    'meeting-outputs/**',
+    'spec/**',
+    '.serena/**',
   ]),
 ]);
 
