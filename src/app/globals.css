@@ -1,57 +1,263 @@
 @import 'tailwindcss';
+@import 'tw-animate-css';
 
-@theme {
-  /* Colors */
-  --color-primary: oklch(54% 0.21 256);
-  --color-primary-deep: oklch(43% 0.2 257);
-  --color-primary-dim: oklch(94% 0.04 256);
-  --color-bg: oklch(98.5% 0.006 255);
-  --color-surface: oklch(99% 0.004 255);
-  --color-ink-strong: oklch(18% 0.012 255);
-  --color-ink-mid: oklch(38% 0.011 255);
-  --color-ink-soft: oklch(52% 0.01 255);
-  --color-ink-3: oklch(70% 0.007 255);
-  --color-line: oklch(89% 0.009 255);
-  --color-danger: oklch(53% 0.21 27);
+/* ─── 1. Primitive + Semantic 토큰 (:root) ───────────────────────── */
+:root {
+  color-scheme: light;
 
-  /* Typography */
-  --font-sans: var(--font-geist-sans), 'Pretendard', sans-serif;
+  /* Blue scale */
+  --blue-50: oklch(97% 0.015 256);
+  --blue-100: oklch(94% 0.04 256);
+  --blue-600: oklch(54% 0.21 256);
+  --blue-700: oklch(47% 0.2 256);
+  --blue-800: oklch(38% 0.17 256);
+  --blue-900: oklch(28% 0.14 256);
 
-  --text-display: 28px;
-  --text-display--line-height: 1.25;
-  --text-display--font-weight: 700;
+  /* Red / Destructive */
+  --red-600: oklch(53% 0.21 27);
 
-  --text-title: 20px;
-  --text-title--line-height: 1.3;
-  --text-title--font-weight: 600;
+  /* Ink (cool-gray) scale */
+  --ink-50: oklch(98.5% 0.006 255);
+  --ink-100: oklch(96% 0.006 255);
+  --ink-200: oklch(91% 0.008 255);
+  --ink-300: oklch(84% 0.008 255);
+  --ink-400: oklch(70% 0.007 255);
+  --ink-500: oklch(52% 0.01 255);
+  --ink-700: oklch(38% 0.011 255);
+  --ink-900: oklch(18% 0.012 255);
 
-  --text-body: 15px;
-  --text-body--line-height: 1.55;
-  --text-body--font-weight: 400;
+  /* Amber (점심) */
+  --amber-500: oklch(78% 0.17 80);
 
-  --text-label: 13px;
-  --text-label--line-height: 1.4;
-  --text-label--font-weight: 500;
+  /* shadcn 시맨틱 토큰 */
+  --background: var(--ink-50);
+  --foreground: var(--ink-900);
+  --card: oklch(100% 0 0);
+  --card-foreground: var(--ink-900);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: var(--ink-900);
+  --primary: var(--blue-600);
+  --primary-foreground: oklch(100% 0 0);
+  --secondary: var(--blue-50);
+  --secondary-foreground: var(--ink-900);
+  --muted: var(--ink-100);
+  --muted-foreground: var(--ink-700);
+  --accent: var(--blue-50);
+  --accent-foreground: var(--blue-800);
+  --destructive: var(--red-600);
+  --destructive-foreground: oklch(100% 0 0);
+  --border: var(--ink-200);
+  --input: var(--ink-200);
+  --ring: var(--blue-600);
+  --radius: 0.625rem;
 
-  /* Rounded */
-  --radius-md: 20px;
-  --radius-lg: 24px;
+  /* ongil 브랜드 토큰 */
+  --surface: oklch(99% 0.004 255);
+  --surface-2: var(--ink-50);
+  --line: var(--ink-200);
+  --brand-link: var(--blue-700);
 
-  /* Spacing */
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
+  /* Status */
+  --danger: var(--red-600);
+  --danger-bg: oklch(97% 0.018 27);
+  --caution: var(--amber-500);
+  --caution-bg: oklch(97% 0.025 80);
+  --status-active: var(--blue-600);
+  --status-active-bg: var(--blue-50);
+  --status-done: oklch(52% 0.14 155);
+  --status-done-bg: oklch(97% 0.025 155);
 
-  /* Elevation */
-  --shadow-sheet: 0 -4px 24px oklch(0% 0 0 / 0.08);
-  --shadow-action: 0 4px 12px oklch(54% 0.21 256 / 0.15);
+  /* Meal-time */
+  --meal-morning: var(--blue-600);
+  --meal-noon: var(--amber-500);
+  --meal-night: var(--red-600);
+
+  /* Medication color-coding */
+  --med-blue-bg: var(--blue-100);
+  --med-blue: var(--blue-700);
+  --med-purple-bg: oklch(94% 0.04 290);
+  --med-purple: oklch(52% 0.18 290);
+  --med-orange-bg: oklch(95% 0.04 50);
+  --med-orange: oklch(58% 0.18 50);
 }
 
+/* ─── 2. @theme inline (Primitive → Tailwind 유틸리티) ──────────── */
+@theme inline {
+  /* shadcn 시맨틱 */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* ongil 브랜드 */
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-brand-link: var(--brand-link);
+  --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
+  --color-caution: var(--caution);
+  --color-caution-bg: var(--caution-bg);
+  --color-status-active: var(--status-active);
+  --color-status-active-bg: var(--status-active-bg);
+  --color-status-done: var(--status-done);
+  --color-status-done-bg: var(--status-done-bg);
+  --color-meal-morning: var(--meal-morning);
+  --color-meal-noon: var(--meal-noon);
+  --color-meal-night: var(--meal-night);
+  --color-med-blue-bg: var(--med-blue-bg);
+  --color-med-blue: var(--med-blue);
+  --color-med-purple-bg: var(--med-purple-bg);
+  --color-med-purple: var(--med-purple);
+  --color-med-orange-bg: var(--med-orange-bg);
+  --color-med-orange: var(--med-orange);
+
+  /* Blue scale (명시적 사용분) */
+  --color-blue-50: var(--blue-50);
+  --color-blue-100: var(--blue-100);
+  --color-blue-600: var(--blue-600);
+  --color-blue-700: var(--blue-700);
+  --color-blue-800: var(--blue-800);
+  --color-blue-900: var(--blue-900);
+
+  /* Ink scale */
+  --color-ink-300: var(--ink-300);
+  --color-ink-400: var(--ink-400);
+  --color-ink-500: var(--ink-500);
+  --color-ink-700: var(--ink-700);
+  --color-ink-900: var(--ink-900);
+
+  /* Radius */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.375rem;
+
+  /* 폰트 */
+  --font-sans: var(--font-pretendard), 'Pretendard Variable', 'Pretendard', sans-serif;
+
+  /* Typography — 393pt 모바일 최적화 스케일 */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.4;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.55;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.1875rem;
+  --text-xl--line-height: 1.4;
+  --text-xl--letter-spacing: -0.01em;
+  --text-2xl: 1.4375rem;
+  --text-2xl--line-height: 1.3;
+  --text-2xl--letter-spacing: -0.02em;
+  --text-3xl: 1.625rem;
+  --text-3xl--line-height: 1.3;
+  --text-3xl--letter-spacing: -0.02em;
+  --text-4xl: 1.875rem;
+  --text-4xl--line-height: 1.2;
+  --text-4xl--letter-spacing: -0.025em;
+}
+
+/* ─── 3. Elevation @utility ──────────────────────────────────────── */
+@utility shadow-card {
+  box-shadow:
+    0 1px 4px oklch(16% 0.04 255 / 0.08),
+    0 0 1px oklch(16% 0.04 255 / 0.06);
+}
+
+@utility shadow-raised {
+  box-shadow:
+    0 4px 16px oklch(16% 0.04 255 / 0.12),
+    0 1px 4px oklch(16% 0.04 255 / 0.08);
+}
+
+@utility shadow-fab {
+  box-shadow: 0 4px 12px oklch(54% 0.21 256 / 0.3);
+}
+
+/* ─── 4. 한국어 줄바꿈 @utility ──────────────────────────────────── */
+@utility kr-wrap {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* ─── 5. @layer base ─────────────────────────────────────────────── */
 @layer base {
+  * {
+    border-color: var(--border);
+    box-sizing: border-box;
+  }
+
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
-    @apply bg-bg text-ink-mid font-sans;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    /* iOS 노치/홈바 영역 보호 */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    /* iOS pull-to-refresh 의도치 않은 발동 방지 */
+    overscroll-behavior-y: contain;
+  }
+
+  /* 300ms 탭 딜레이 제거 */
+  button,
+  a,
+  [role='button'] {
+    touch-action: manipulation;
+  }
+
+  /* 한국어 기본 줄바꿈 */
+  p,
+  li,
+  dd {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  /* heading 텍스트 균형 */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  /* 숫자 고정폭 정렬 */
+  time,
+  [data-tabular] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* textarea CSS-only auto-grow */
+  textarea {
+    field-sizing: content;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -66,15 +272,17 @@
   }
 }
 
+/* ─── 6. @layer components ───────────────────────────────────────── */
 @layer components {
-  .btn-primary {
-    @apply bg-primary text-surface px-lg py-md text-label rounded-md transition-colors;
-    @apply hover:bg-primary-deep;
-    @apply shadow-action;
+  @view-transition {
+    navigation: auto;
   }
 
-  .input-standard {
-    @apply bg-surface border-line px-md text-body rounded-md py-[14px] transition-all outline-none;
-    @apply focus:border-primary focus:ring-primary focus:ring-1;
+  .app-header {
+    view-transition-name: app-header;
+  }
+
+  .bottom-nav {
+    view-transition-name: bottom-nav;
   }
 }

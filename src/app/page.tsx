@@ -1,21 +1,24 @@
+import { Button } from '@/components/ui/button';
+import { Pill } from 'lucide-react';
+
 export default function Home() {
   return (
-    <div className="bg-bg flex min-h-screen flex-col items-center font-sans">
-      <main className="bg-surface p-xl flex w-full max-w-[390px] flex-1 flex-col items-center justify-center shadow-sm">
-        <div className="mb-xl bg-primary-dim flex h-20 w-20 items-center justify-center rounded-lg">
-          <span className="text-primary text-3xl">💊</span>
+    <div className="bg-background flex min-h-screen flex-col items-center font-sans">
+      <main className="bg-surface flex w-full max-w-[390px] flex-1 flex-col items-center justify-center p-8 shadow-sm">
+        <div className="bg-secondary mb-8 flex h-20 w-20 items-center justify-center rounded-2xl">
+          <Pill className="text-primary" size={40} strokeWidth={1.8} />
         </div>
 
-        <h1 className="text-display text-ink-strong">온길 (Ongil)</h1>
+        <h1 className="text-ink-900 text-2xl font-bold">온길 (Ongil)</h1>
 
-        <p className="mt-md text-body text-ink-mid text-center">
+        <p className="text-ink-700 kr-wrap mt-4 text-center text-base">
           부모님의 건강한 일상을 지키는
           <br />
           스마트 복약 관리 서비스입니다.
         </p>
 
-        <div className="mt-xl w-full">
-          <button className="btn-primary w-full">시작하기</button>
+        <div className="mt-8 w-full">
+          <Button size="cta">시작하기</Button>
         </div>
       </main>
     </div>
