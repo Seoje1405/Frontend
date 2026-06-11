@@ -136,6 +136,9 @@
   --color-blue-900: var(--blue-900);
 
   /* Ink scale */
+  --color-ink-50: var(--ink-50);
+  --color-ink-100: var(--ink-100);
+  --color-ink-200: var(--ink-200);
   --color-ink-300: var(--ink-300);
   --color-ink-400: var(--ink-400);
   --color-ink-500: var(--ink-500);
@@ -149,6 +152,15 @@
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
   --radius-3xl: 1.375rem;
+
+  /* z-index 레이어 스케일 */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
 
   /* 폰트 */
   --font-sans: var(--font-pretendard), 'Pretendard Variable', 'Pretendard', sans-serif;
@@ -227,6 +239,12 @@
     overscroll-behavior-y: contain;
   }
 
+  /* 포커스 키보드 내비게이션 */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
   /* 300ms 탭 딜레이 제거 */
   button,
   a,
@@ -280,6 +298,7 @@
 
   .app-header {
     view-transition-name: app-header;
+    padding-top: calc(1rem + env(safe-area-inset-top));
   }
 
   .bottom-nav {
