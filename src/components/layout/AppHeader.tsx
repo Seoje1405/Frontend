@@ -11,8 +11,8 @@ export function AppHeader({ name = '000', expanded = false }: AppHeaderProps) {
     <header className="app-header border-line bg-surface-2 z-sticky relative flex items-center justify-between border-b px-4.5 pt-4 pb-3">
       {/* 계정 스위처: 클릭 시 expanded 토글 → 아이콘 ChevronDown↔Up 전환, 콘텐츠 영역에 프로필 목록 오버레이 표시 */}
       <Link
-        href="/account"
-        aria-label={name === '000' ? '계정 전환' : `계정 전환, 현재 ${name}`}
+        href="/parents"
+        aria-label={name === '000' ? '부모님 추가' : `부모님 전환, 현재 ${name}`}
         aria-expanded={expanded}
         aria-haspopup="dialog"
         className="focus-visible:ring-primary flex min-h-[44px] items-center gap-2 transition-opacity duration-150 hover:opacity-80 focus-visible:rounded-sm focus-visible:ring-2 focus-visible:outline-none"
