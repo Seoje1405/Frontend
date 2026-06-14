@@ -163,15 +163,19 @@ export default function MediCard() {
   };
 
   return (
-    <div className="bg-background shadow-card flex flex-col gap-4 overflow-hidden rounded-xl border">
+    <div className="flex flex-col gap-4">
       {MEAL_DATA.map((meal) => {
         const headingId = `meal-heading-${meal.mealname}`;
         const mealColor = MEAL_COLOR[meal.mealType];
 
         return (
-          <section key={meal.mealname} aria-labelledby={headingId} className="bg-card rounded-lg">
+          <section
+            key={meal.mealname}
+            aria-labelledby={headingId}
+            className="bg-card shadow-card overflow-hidden rounded-xl"
+          >
             {/* 식사시간 헤더 */}
-            <div className="bg-background flex items-center justify-between border-b px-4 py-3">
+            <div className="border-line flex items-center justify-between border-b px-4 py-3">
               <div className="flex items-center gap-2">
                 <span aria-hidden="true" className={cn('size-2 rounded-full', mealColor.dot)} />
                 <h2 id={headingId} className={cn('text-sm font-semibold', mealColor.text)}>
@@ -183,12 +187,12 @@ export default function MediCard() {
               </time>
             </div>
 
-            {/* 병원별 카드 */}
-            <div className="shadow-card flex flex-col gap-3 rounded-b-lg border-b p-4">
+            {/* 병원별 그룹 */}
+            <div className="flex flex-col gap-3 p-4">
               {meal.hospitals.map((group, groupIdx) => (
                 <div
                   key={group.id ?? group.hospital ?? `group-${groupIdx}`}
-                  className="bg-background shadow-card overflow-hidden rounded-xl border"
+                  className="border-line overflow-hidden rounded-xl border"
                 >
                   {/* 병원 헤더 (병원명 있을 때만) */}
                   {group.hospital && (
