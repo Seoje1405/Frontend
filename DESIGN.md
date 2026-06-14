@@ -274,6 +274,26 @@ The basic unit for containing information. Nesting is prohibited.
 - **Border:** None on the card itself; internal dividers use Ink Border (oklch(91% 0.008 255))
 - **Internal Padding:** p-6 (1.5rem) default; p-4 (1rem) allowed in compact mobile layouts
 
+### Current Status Card (홈 복약 현황 카드)
+
+홈 화면 최상단에 오늘 복약 현황을 요약하는 히어로 카드. **의도된 다크 배경 변형**으로, 일반 Card White 규칙의 유일한 예외다. 배경의 어두운 색이 Canvas로부터의 분리를 자체적으로 형성하므로 shadow를 사용하지 않는다.
+
+- **Background:** `--card-current` (Steadfast Blue Deeper: `oklch(38% 0.17 256)`) — 배경이 Canvas보다 어두워 그림자 없이도 계층이 형성됨
+- **Primary Text:** `--card-current-text` (`var(--ink-50)`, `oklch(98.5% 0.006 255)`) — 메인 숫자 및 상태 접미사
+- **Muted Text:** `--card-current-text-muted` (`var(--ink-300)`, `oklch(84% 0.008 255)`) — 환자명 캡션, 다음 복용 안내
+- **Progress Track:** `--card-current-track` (`oklch(100% 0 0 / 20%)`) — 진행 바 배경
+- **Progress Fill:** `status-done-bright` (`oklch(79% 0.19 151)`) — 완료 수량 표시
+- **Shadow:** 없음 — 다크 배경이 Canvas(99%)로부터의 시각적 분리를 자체 제공
+- **Corner:** rounded-xl (0.75rem); **Padding:** p-6 (1.5rem)
+- **Semantic:** `<article aria-label="{patientName}님 복약 현황">` — 스크린 리더 랜드마크
+
+**구조 (위에서 아래):**
+
+1. 환자명 캡션 — `text-sm text-card-current-text-muted`
+2. 복약 수 + 상태 접미사 — Display(text-4xl, 700) + Title(text-xl, 600), 모두 `text-card-current-text`
+3. 진행 바 — `role="progressbar"` with `aria-valuenow/min/max/label`
+4. 다음 복용 안내 (pending/partial 상태에서만) — `text-sm text-card-current-text-muted`
+
 ### Inputs / Fields
 
 - **Style:** Ink Border stroke (1px), Canvas background, rounded-md (0.625rem)
