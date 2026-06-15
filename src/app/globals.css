@@ -84,6 +84,12 @@
   /* 부모님 추가 */
   --icon-parent: oklch(71% 0.035 267);
 
+  /* 소셜 로그인 공급자 (외부 브랜드 필수 색상) */
+  --social-kakao: oklch(0.816074 0.17046 77.4296);
+  --social-kakao-text: var(--ink-900);
+  --social-naver: oklch(0.725 0.2014 149.53);
+  --social-naver-text: oklch(100% 0 0);
+
   /* 홈 복약 현황 카드 — 의도된 다크 배경 변형 (DESIGN.md § Current Status Card 참고) */
   --card-current: var(--blue-800);
   --card-current-text: var(--ink-50);
@@ -140,6 +146,12 @@
 
   /* 부모님 추가 */
   --color-icon-parent: var(--icon-parent);
+
+  /* 소셜 로그인 공급자 */
+  --color-social-kakao: var(--social-kakao);
+  --color-social-kakao-text: var(--social-kakao-text);
+  --color-social-naver: var(--social-naver);
+  --color-social-naver-text: var(--social-naver-text);
 
   /* 홈 복약 현황 카드 */
   --color-card-current: var(--card-current);
