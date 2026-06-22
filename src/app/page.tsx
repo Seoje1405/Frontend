@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Pill } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -18,7 +19,9 @@ export default function Home() {
         </p>
 
         <div className="mt-8 w-full">
-          <Button size="cta">시작하기</Button>
+          <Button size="cta" asChild>
+            <Link href="/onboarding">시작하기</Link>
+          </Button>
         </div>
       </main>
     </div>
