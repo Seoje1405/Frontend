@@ -84,6 +84,12 @@
   /* 부모님 추가 */
   --icon-parent: oklch(71% 0.035 267);
 
+  /* 소셜 로그인 공급자 (외부 브랜드 필수 색상) */
+  --social-kakao: oklch(0.816074 0.17046 77.4296);
+  --social-kakao-text: var(--ink-900);
+  --social-naver: oklch(0.725 0.2014 149.53);
+  --social-naver-text: oklch(100% 0 0);
+
   /* 홈 복약 현황 카드 — 의도된 다크 배경 변형 (DESIGN.md § Current Status Card 참고) */
   --card-current: var(--blue-800);
   --card-current-text: var(--ink-50);
@@ -141,6 +147,12 @@
   /* 부모님 추가 */
   --color-icon-parent: var(--icon-parent);
 
+  /* 소셜 로그인 공급자 */
+  --color-social-kakao: var(--social-kakao);
+  --color-social-kakao-text: var(--social-kakao-text);
+  --color-social-naver: var(--social-naver);
+  --color-social-naver-text: var(--social-naver-text);
+
   /* 홈 복약 현황 카드 */
   --color-card-current: var(--card-current);
   --color-card-current-text: var(--card-current-text);
@@ -185,6 +197,9 @@
   /* 폰트 */
   --font-sans: var(--font-pretendard), 'Pretendard Variable', 'Pretendard', sans-serif;
 
+  /* 휠 아이템 클릭 ripple */
+  --animate-wheel-ripple: wheel-ripple 0.38s ease-out forwards;
+
   /* Typography — 393pt 모바일 최적화 스케일 */
   --text-2xs: 0.6875rem;
   --text-2xs--line-height: 1.4;
@@ -210,6 +225,18 @@
   --text-4xl--letter-spacing: -0.025em;
 }
 
+/* ─── Keyframes ──────────────────────────────────────────────────── */
+@keyframes wheel-ripple {
+  from {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.35;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(2.8);
+    opacity: 0;
+  }
+}
+
 /* ─── 3. Elevation @utility ──────────────────────────────────────── */
 @utility shadow-card {
   box-shadow:
@@ -231,6 +258,26 @@
 @utility kr-wrap {
   word-break: keep-all;
   overflow-wrap: anywhere;
+}
+
+/* ─── 온보딩 배경 그라데이션 @utility ───────────────────────────── */
+@utility ob-bg {
+  background-image:
+    radial-gradient(
+      420px 320px at -10% 38%,
+      color-mix(in oklch, var(--caution) 12%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      520px 380px at 110% 18%,
+      color-mix(in oklch, var(--primary) 12%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      420px 360px at 50% 110%,
+      color-mix(in oklch, var(--primary) 8%, transparent),
+      transparent 70%
+    );
 }
 
 /* ─── 5. @layer base ─────────────────────────────────────────────── */
