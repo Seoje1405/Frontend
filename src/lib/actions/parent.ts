@@ -7,6 +7,7 @@ import { mealTimeSchema, toHHmm } from '@/lib/schema/meal-time';
 import { parentSchema } from '@/lib/schema/parent';
 import type {
   PhoneVerificationSendRequest,
+  PhoneVerificationSendResponse,
   SeniorCreateRequest,
   SeniorMealTimeUpdateRequest,
   SeniorResponse,
@@ -16,14 +17,18 @@ import { cookies } from 'next/headers';
 type ActionResult = { ok: true } | { ok: false; error: string };
 
 // 백엔드에 별도 "검증" 엔드포인트가 없어 발송만 하고, 실제 검증은 registerParent(등록)에서 처리
-export async function requestParentCode(phoneRaw: string): Promise<ActionResult> {
+// 문자 발송 기능이 아직 미구현이라 테스트 API가 인증번호를 응답으로 내려줌 → 클라이언트에서 자동 채움
+export async function requestParentCode(
+  phoneRaw: string,
+): Promise<{ ok: true; verificationCode: string } | { ok: false; error: string }> {
   const phone = phoneRaw.replace(/\D/g, '');
 
   try {
-    await apiClient.post<void>('/api/seniors/phone-verification', {
-      phoneNumber: phone,
-    } satisfies PhoneVerificationSendRequest);
-    return { ok: true };
+    const { verificationCode } = await apiClient.post<PhoneVerificationSendResponse>(
+      '/api/seniors/phone-verification',
+      { phoneNumber: phone } satisfies PhoneVerificationSendRequest,
+    );
+    return { ok: true, verificationCode };
   } catch (error) {
     if (error instanceof ApiError) {
       return { ok: false, error: error.message };

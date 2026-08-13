@@ -59,6 +59,10 @@ export interface PhoneVerificationSendRequest {
   phoneNumber: string;
 }
 
+export interface PhoneVerificationSendResponse {
+  verificationCode: string;
+}
+
 export interface SeniorMealTimeUpdateRequest {
   breakfastTime: string; // 'HH:mm'
   lunchTime: string; // 'HH:mm'

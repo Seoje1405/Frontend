@@ -105,11 +105,12 @@ export function ParentRegisterForm() {
       }
       needsFocusRef.current = true;
       setStartedAt(Date.now());
-      setCode('');
+      // 문자 발송 미구현 상태라 테스트 API가 내려준 인증번호를 그대로 채워 넣음
+      setCode(result.verificationCode);
       setTimerAlert('');
       setTimerKey((k) => k + 1);
       setStatusAlert('인증번호가 발송되었습니다.');
-      setCodePhase('code-sent');
+      setCodePhase(result.verificationCode.length === 6 ? 'filled' : 'code-sent');
     });
   }
 
