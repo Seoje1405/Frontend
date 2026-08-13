@@ -4,6 +4,7 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
@@ -41,6 +42,10 @@ export function BirthPickerDrawer({ open, value, onClose, onConfirm }: BirthPick
       <DrawerContent className="rounded-t-3xl px-5.5 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
         <DrawerHeader className="flex flex-row items-center justify-between px-0 pt-3.5 pb-3.5">
           <DrawerTitle className="text-ink-900 text-xl font-semibold">생년월일 선택</DrawerTitle>
+          {/* 스크린리더 전용 설명 — Radix Dialog의 aria-describedby 경고 방지 */}
+          <DrawerDescription className="sr-only">
+            부모님의 생년월일을 선택하는 대화상자입니다.
+          </DrawerDescription>
           <DrawerClose className="text-primary -mr-2 min-h-11 min-w-11 px-2 text-base font-semibold">
             닫기
           </DrawerClose>

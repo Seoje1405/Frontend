@@ -11,7 +11,7 @@ const MOCK_CARD = {
 export default function ParentAddSendCardPage() {
   return (
     <div className="flex flex-1 flex-col">
-      <CallCareBar />
+      <CallCareBar back="/parents/add/step2" />
       <Suspense fallback={<div className="flex-1" aria-busy="true" aria-label="로딩 중" />}>
         <ParentAddSendCardFlow card={MOCK_CARD} />
       </Suspense>

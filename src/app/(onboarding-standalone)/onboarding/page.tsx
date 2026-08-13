@@ -1,8 +1,21 @@
 import Image from 'next/image';
-import Link from 'next/link';
 import { AppLogo } from './_components/app-logo';
 
-export default function OnboardingPage() {
+// /auth/callback/[provider]에서 로그인 실패 시 붙이는 error 쿼리 값별 안내 문구
+const LOGIN_ERROR_MESSAGES: Record<string, string> = {
+  oauth_denied: '로그인이 취소되었습니다.',
+  invalid_state: '로그인 세션이 만료되었습니다. 다시 시도해주세요.',
+  login_failed: '로그인에 실패했습니다. 잠시 후 다시 시도해주세요.',
+};
+
+type SearchParams = Promise<{ error?: string }>;
+
+export default async function OnboardingPage({ searchParams }: { searchParams: SearchParams }) {
+  const { error } = await searchParams;
+  const errorMessage = error
+    ? (LOGIN_ERROR_MESSAGES[error] ?? LOGIN_ERROR_MESSAGES.login_failed)
+    : null;
+
   return (
     <div
       className="ob-bg flex flex-1 flex-col px-5.5"
@@ -25,26 +38,38 @@ export default function OnboardingPage() {
 
       <div className="flex-1" />
 
+      {errorMessage && (
+        <p
+          role="alert"
+          className="kr-wrap bg-danger-bg text-danger mx-4 mb-4 rounded-md px-4 py-3 text-center text-sm"
+        >
+          {errorMessage}
+        </p>
+      )}
+
       <div className="flex flex-col gap-2.5 pb-2">
-        <Link
-          href="/onboarding/step1"
+        {/* OAuth 인가 서버로 나가는 리다이렉트라 next/link 소프트 내비게이션 대신 일반 앵커로 전체 페이지 이동시킴 */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a
+          href="/auth/kakao"
           className="bg-social-kakao text-social-kakao-text focus-visible:ring-primary relative grid h-14 place-items-center rounded-2xl text-base font-bold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none active:opacity-80"
         >
           <span className="absolute left-4">
             <Image src="/assets/icons/kakao.svg" alt="" width={20} height={20} />
           </span>
           카카오로 로그인
-        </Link>
+        </a>
 
-        <Link
-          href="/onboarding/step1"
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a
+          href="/auth/naver"
           className="bg-social-naver text-social-naver-text focus-visible:ring-primary relative grid h-14 place-items-center rounded-2xl text-base font-bold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none active:opacity-80"
         >
           <span className="absolute left-4">
             <Image src="/assets/icons/naver.svg" alt="" width={20} height={20} />
           </span>
           네이버로 로그인
-        </Link>
+        </a>
       </div>
 
       <p className="kr-wrap text-ink-500 mt-4.5 mb-7 text-center text-xs">

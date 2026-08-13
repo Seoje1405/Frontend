@@ -2,15 +2,71 @@
 
 import { GenderSegmented, type Gender } from '@/components/parent-form/gender-segmented';
 import { BirthPickerDrawer, type Birth } from '@/components/ui/birth-picker-drawer';
-import { registerParent, requestParentCode, verifyParentCode } from '@/lib/actions/parent';
+import { registerParent, requestParentCode } from '@/lib/actions/parent';
 import { formatPhone } from '@/lib/schema/phone';
 import { Calendar, CircleAlert, CircleCheck, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, useTransition } from 'react';
 
-type CodePhase = 'idle' | 'code-sent' | 'error' | 'verified';
+// 'filled'은 서버 검증이 아니라 6자리 입력 완료 상태 — 실제 검증은 registerParent(최종 등록)에서 이뤄짐
+type CodePhase = 'idle' | 'code-sent' | 'error' | 'filled';
+
+const DEFAULT_CODE_ERROR = '인증번호가 일치하지 않습니다. 다시 확인해 주세요.';
 
 const CODE_TTL = 180;
+
+// 카운트다운 표시만 별도 컴포넌트로 분리 — 1초마다 갱신되는 left state를
+// 폼 전체(이름/성별/생년월일 등)가 아니라 이 컴포넌트만 리렌더되도록 격리
+function CountdownTimer({
+  startedAt,
+  ttl,
+  isError,
+  onAlert,
+}: {
+  startedAt: number;
+  ttl: number;
+  isError: boolean;
+  onAlert: (message: string) => void;
+}) {
+  const [left, setLeft] = useState(ttl);
+  const lastAlertRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+      const remaining = Math.max(0, ttl - elapsed);
+      setLeft(remaining);
+      if (remaining <= 0) {
+        onAlert('인증번호 입력 시간이 만료되었습니다. 재발송 버튼을 눌러주세요.');
+        clearInterval(id);
+        return;
+      }
+      for (const threshold of [60, 30] as const) {
+        if (remaining <= threshold && lastAlertRef.current !== threshold) {
+          lastAlertRef.current = threshold;
+          onAlert(`인증번호 입력 시간이 ${threshold}초 남았습니다.`);
+        }
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [startedAt, ttl, onAlert]);
+
+  const mm = String(Math.floor(left / 60)).padStart(2, '0');
+  const ss = String(left % 60).padStart(2, '0');
+
+  return (
+    <span
+      role="timer"
+      aria-label={`남은 시간 ${mm}분 ${ss}초`}
+      aria-live="off"
+      className={`ml-auto pl-2 text-sm font-semibold tabular-nums ${
+        isError ? 'text-destructive' : 'text-ink-500'
+      }`}
+    >
+      {mm}:{ss}
+    </span>
+  );
+}
 
 export function ParentRegisterForm() {
   const router = useRouter();
@@ -23,54 +79,33 @@ export function ParentRegisterForm() {
   const [code, setCode] = useState('');
 
   const [codePhase, setCodePhase] = useState<CodePhase>('idle');
+  const [codeErrorMessage, setCodeErrorMessage] = useState(DEFAULT_CODE_ERROR);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [left, setLeft] = useState(CODE_TTL);
   const [timerAlert, setTimerAlert] = useState('');
   const [timerKey, setTimerKey] = useState(0);
   const [statusAlert, setStatusAlert] = useState('');
   const composing = useRef(false);
   const codeRef = useRef<HTMLInputElement | null>(null);
   const needsFocusRef = useRef(false);
-  const startTimeRef = useRef<number | null>(null);
-  const lastAlertRef = useRef<number | null>(null);
+  // CountdownTimer에 prop으로 전달되어 렌더 중 읽히므로 ref가 아닌 state로 관리
+  const [startedAt, setStartedAt] = useState<number | null>(null);
 
   const nameOk = name.trim().length >= 1;
   const phoneOk = phone.replace(/\D/g, '').length === 11;
-  const canNext = nameOk && !!gender && !!birth && phoneOk && codePhase === 'verified';
-
-  useEffect(() => {
-    if (codePhase === 'idle' || codePhase === 'verified' || !startTimeRef.current) return;
-    const id = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTimeRef.current!) / 1000);
-      const remaining = Math.max(0, CODE_TTL - elapsed);
-      setLeft(remaining);
-      if (remaining <= 0) {
-        setTimerAlert('인증번호 입력 시간이 만료되었습니다. 재발송 버튼을 눌러주세요.');
-        clearInterval(id);
-        return;
-      }
-      for (const threshold of [60, 30] as const) {
-        if (remaining <= threshold && lastAlertRef.current !== threshold) {
-          lastAlertRef.current = threshold;
-          setTimerAlert(`인증번호 입력 시간이 ${threshold}초 남았습니다.`);
-        }
-      }
-    }, 1000);
-    return () => clearInterval(id);
-  }, [codePhase, timerKey]);
-
-  const mm = String(Math.floor(left / 60)).padStart(2, '0');
-  const ss = String(left % 60).padStart(2, '0');
+  const codeOk = code.length === 6;
+  const canNext = nameOk && !!gender && !!birth && phoneOk && codeOk;
 
   function sendCode() {
     setStatusAlert('인증번호를 발송 중입니다.');
     start(async () => {
-      await requestParentCode(phone);
+      const result = await requestParentCode(phone);
+      if (!result.ok) {
+        setStatusAlert(result.error);
+        return;
+      }
       needsFocusRef.current = true;
-      startTimeRef.current = Date.now();
-      lastAlertRef.current = null;
+      setStartedAt(Date.now());
       setCode('');
-      setLeft(CODE_TTL);
       setTimerAlert('');
       setTimerKey((k) => k + 1);
       setStatusAlert('인증번호가 발송되었습니다.');
@@ -81,24 +116,28 @@ export function ParentRegisterForm() {
   function onCodeChange(v: string) {
     const next = v.replace(/\D/g, '').slice(0, 6);
     setCode(next);
-    if (codePhase === 'error') setCodePhase('code-sent');
     if (next.length === 6) {
-      start(async () => {
-        const ok = await verifyParentCode(phone, next);
-        setCodePhase(ok ? 'verified' : 'error');
-      });
+      setCodePhase('filled');
+    } else if (codePhase === 'error' || codePhase === 'filled') {
+      setCodePhase('code-sent');
     }
   }
 
   function submit() {
     start(async () => {
-      await registerParent({
+      const result = await registerParent({
         name: name.trim(),
         gender,
         birth: `${birth!.y}-${birth!.m.padStart(2, '0')}-${birth!.d.padStart(2, '0')}`,
         phone,
+        verificationCode: code,
       });
-      router.push('/onboarding/step3');
+      if (result.ok) {
+        router.push('/onboarding/step2');
+      } else {
+        setCodeErrorMessage(result.error);
+        setCodePhase('error');
+      }
     });
   }
 
@@ -212,7 +251,7 @@ export function ParentRegisterForm() {
                   className={`bg-card focus-within:ring-ring/30 flex h-14 items-center rounded-md border px-4.5 transition-[border-color,box-shadow] duration-150 focus-within:ring-2 ${
                     codePhase === 'error'
                       ? 'border-destructive ring-destructive focus-within:ring-destructive/40 ring-1'
-                      : codePhase === 'verified'
+                      : codePhase === 'filled'
                         ? 'border-status-done'
                         : 'border-line focus-within:border-primary'
                   }`}
@@ -245,23 +284,20 @@ export function ParentRegisterForm() {
                     }}
                     className="text-ink-900 placeholder:text-ink-400 min-w-0 flex-1 bg-transparent text-base tabular-nums focus:outline-none"
                   />
-                  {codePhase === 'verified' ? (
+                  {codePhase === 'filled' ? (
                     <CircleCheck
                       className="text-status-done ml-auto size-4.5 shrink-0"
                       strokeWidth={1.9}
                       aria-hidden="true"
                     />
                   ) : (
-                    <span
-                      role="timer"
-                      aria-label={`남은 시간 ${mm}분 ${ss}초`}
-                      aria-live="off"
-                      className={`ml-auto pl-2 text-sm font-semibold tabular-nums ${
-                        codePhase === 'error' ? 'text-destructive' : 'text-ink-500'
-                      }`}
-                    >
-                      {mm}:{ss}
-                    </span>
+                    <CountdownTimer
+                      key={timerKey}
+                      startedAt={startedAt!}
+                      ttl={CODE_TTL}
+                      isError={codePhase === 'error'}
+                      onAlert={setTimerAlert}
+                    />
                   )}
                 </div>
 
@@ -276,7 +312,7 @@ export function ParentRegisterForm() {
                       strokeWidth={1.9}
                       aria-hidden="true"
                     />
-                    인증번호가 일치하지 않습니다. 다시 확인해 주세요.
+                    {codeErrorMessage}
                   </p>
                 )}
 

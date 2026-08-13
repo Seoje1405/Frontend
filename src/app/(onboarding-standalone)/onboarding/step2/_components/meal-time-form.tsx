@@ -58,13 +58,11 @@ export function MealTimeForm() {
     e.preventDefault();
     setError('');
     start(async () => {
-      try {
-        await saveMealTimes(meals);
+      const result = await saveMealTimes(meals);
+      if (result.ok) {
         router.push('/onboarding/send-card');
-      } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : '저장 중 오류가 발생했습니다. 다시 시도해주세요.';
-        setError(message);
+      } else {
+        setError(result.error);
       }
     });
   }
