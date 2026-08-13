@@ -5,7 +5,7 @@ import { WeekStripController } from './week-strip-controller';
 interface WeekStripSectionProps {
   anchorISO: string;
   selectedISO: string;
-  patientId: string;
+  patientId: number;
 }
 
 export async function WeekStripSection({

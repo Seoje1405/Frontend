@@ -2,7 +2,7 @@ import { getExpiryAlerts } from '@/lib/data/home';
 import ExpiryAlertCard from './expiry-alert-card';
 
 interface ExpiryAlertSectionProps {
-  patientId: string;
+  patientId: number;
 }
 
 export async function ExpiryAlertSection({ patientId }: ExpiryAlertSectionProps) {

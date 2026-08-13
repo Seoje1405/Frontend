@@ -1,5 +1,32 @@
 'use server';
 
-// TODO: API 연동 시 실제 DB 업데이트 후 revalidatePath('/home') 호출로 교체
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function checkMedication(_medId: string, _checked: boolean): Promise<void> {}
+import { ApiError, apiClient } from '@/lib/api/client';
+import type {
+  MealTime,
+  MedicationLogToggleRequest,
+  MedicationLogToggleResponse,
+} from '@/types/api';
+import { revalidatePath } from 'next/cache';
+
+type ToggleResult = { ok: true; isTaken: boolean } | { ok: false; error: string };
+
+// 백엔드는 "설정"이 아니라 "반전(toggle)"만 지원 — 응답의 isTaken을 신뢰 소스로 사용해야 함
+export async function checkMedication(
+  medicationId: number,
+  mealTime: MealTime,
+): Promise<ToggleResult> {
+  try {
+    const result = await apiClient.post<MedicationLogToggleResponse>(
+      `/api/home/medications/${medicationId}/logs/toggle`,
+      { mealTime } satisfies MedicationLogToggleRequest,
+    );
+
+    revalidatePath('/home');
+    return { ok: true, isTaken: result.isTaken };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return { ok: false, error: error.message };
+    }
+    throw error;
+  }
+}

@@ -1,17 +1,21 @@
+import type { MealTime } from '@/types/api';
+
 export type MedColor = 'blue' | 'purple' | 'orange';
 export type MealType = 'morning' | 'noon' | 'night';
 
 export type Medication = {
-  id: string;
+  id: number;
   name: string;
   kind?: string;
   use: string[];
   color: MedColor;
   checked: boolean;
+  mealTime: MealTime; // 병합 표시(night = DINNER+BEDTIME) 이전의 실제 백엔드 값 — 토글 요청에 필요
+  editable: boolean; // 토글 API는 "오늘"만 허용 — 과거/미래 날짜 조회 시 false
 };
 
 export type HospitalGroup = {
-  id?: string;
+  id?: number;
   hospital?: string;
   medications: Medication[];
 };
