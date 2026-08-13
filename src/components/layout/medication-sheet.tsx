@@ -7,10 +7,15 @@ import {
   DrawerPortal,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import { MAX_OCR_IMAGE_BYTES } from '@/lib/constants/upload';
 import { useMedicationSheetStore } from '@/lib/stores/medication-sheet-store';
+import { useOcrResultStore } from '@/lib/stores/ocr-result-store';
+import type { OcrResultResponse } from '@/types/api';
 import { ChevronRight, ClipboardPlus, PencilLine } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import type { ChangeEvent } from 'react';
+import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { Drawer as DrawerPrimitive } from 'vaul';
 import type { ImageSource } from './image-source-sheet';
 import { ImageSourceSheet } from './image-source-sheet';
@@ -18,8 +23,11 @@ import { ImageSourceSheet } from './image-source-sheet';
 export function MedicationSheet() {
   const isOpen = useMedicationSheetStore((s) => s.isOpen);
   const close = useMedicationSheetStore((s) => s.close);
+  const setOcrResult = useOcrResultStore((s) => s.setResult);
   const router = useRouter();
   const [imageSourceOpen, setImageSourceOpen] = useState(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const albumInputRef = useRef<HTMLInputElement>(null);
 
   function handleDirectInput() {
     close();
@@ -27,11 +35,60 @@ export function MedicationSheet() {
   }
 
   function handleImageSelect(src: ImageSource) {
-    // TODO: src === 'camera' → launch camera, src === 'album' → open file picker
+    if (src === 'camera') cameraInputRef.current?.click();
+    else albumInputRef.current?.click();
+  }
+
+  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    if (file.size > MAX_OCR_IMAGE_BYTES) {
+      toast.error('이미지 용량이 너무 커요. 15MB 이하 사진을 선택해주세요.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.set('image', file);
+
+    const toastId = toast.loading('사진을 분석하고 있어요...');
+    try {
+      const res = await fetch('/api/medications/ocr', { method: 'POST', body: formData });
+      const json = (await res.json()) as OcrResultResponse | { message: string };
+      if (!res.ok) {
+        throw new Error('message' in json ? json.message : '사진 분석에 실패했어요.');
+      }
+
+      setOcrResult(json as OcrResultResponse);
+      toast.success('사진 분석이 완료됐어요.', { id: toastId });
+      close();
+      router.push('/medication-add/direct');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '사진 분석에 실패했어요.', {
+        id: toastId,
+      });
+    }
   }
 
   return (
     <>
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      <input
+        ref={albumInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       <Drawer open={isOpen} onOpenChange={(open) => !open && close()}>
         <DrawerPortal>
           <DrawerOverlay className="bg-black/40" />
