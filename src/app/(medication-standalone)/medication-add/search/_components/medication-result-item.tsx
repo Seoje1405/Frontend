@@ -1,10 +1,10 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import type { DrugSearchResponse } from '@/types/api';
 import { Check, Pill } from 'lucide-react';
-import type { DrugItem } from './medication-search-results';
 
-// 카테고리명 해시로 3가지 색상 태그 중 하나를 결정 — 동일 카테고리는 항상 동일 색상
+// 분류명 해시로 3가지 색상 태그 중 하나를 결정 — 동일 분류는 항상 동일 색상
 function getCategoryVariant(category: string): 'blue' | 'purple' | 'orange' {
   const hash = category.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   return (['blue', 'purple', 'orange'] as const)[hash % 3];
@@ -17,13 +17,15 @@ const COLOR_CLASSES = {
 } as const;
 
 interface MedicationResultItemProps {
-  drug: DrugItem;
+  drug: DrugSearchResponse;
   isSelected: boolean;
   onSelect: () => void;
 }
 
 export function MedicationResultItem({ drug, isSelected, onSelect }: MedicationResultItemProps) {
-  const colors = COLOR_CLASSES[getCategoryVariant(drug.category)];
+  const category = drug.prductType ?? '기타';
+  const colors = COLOR_CLASSES[getCategoryVariant(category)];
+  const subtitle = [drug.entpName, category].filter(Boolean).join(' / ');
 
   return (
     <button
@@ -44,10 +46,8 @@ export function MedicationResultItem({ drug, isSelected, onSelect }: MedicationR
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="kr-wrap text-foreground text-base font-semibold">{drug.name}</span>
-        <span className="text-muted-foreground text-sm">
-          {drug.manufacturer} / {drug.category}
-        </span>
+        <span className="kr-wrap text-foreground text-base font-semibold">{drug.itemName}</span>
+        {subtitle ? <span className="text-muted-foreground text-sm">{subtitle}</span> : null}
       </div>
 
       {isSelected ? (
