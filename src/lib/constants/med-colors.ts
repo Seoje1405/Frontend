@@ -1,5 +1,12 @@
 import type { MedColor } from '@/lib/data/types';
 
+// 백엔드가 약 색상 태그를 내려주지 않아, medicationId 기반 결정적 해시로 배정(의학적 의미 없는 식별용 색상)
+const MED_COLOR_ORDER: MedColor[] = ['blue', 'purple', 'orange'];
+
+export function hashMedColor(medicationId: number): MedColor {
+  return MED_COLOR_ORDER[medicationId % MED_COLOR_ORDER.length];
+}
+
 export const MED_COLOR_CLASSES: Record<
   MedColor,
   { iconBg: string; iconColor: string; chipBg: string; chipText: string }

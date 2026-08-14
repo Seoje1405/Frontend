@@ -2,10 +2,10 @@ import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 
 interface CallCareBarProps {
-  back?: string;
+  back: string;
 }
 
-export function CallCareBar({ back = '/onboarding/step3' }: CallCareBarProps) {
+export function CallCareBar({ back }: CallCareBarProps) {
   return (
     <header
       aria-label="연락처 카드 발송 헤더"

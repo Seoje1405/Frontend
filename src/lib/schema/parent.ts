@@ -7,6 +7,7 @@ export const parentSchema = z.object({
   gender: z.enum(['M', 'F']),
   birth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '생년월일을 선택해주세요.'),
   phone: phoneSchema,
+  verificationCode: z.string().regex(/^\d{6}$/, '인증번호 6자리를 입력해주세요.'),
 });
 
 export type ParentInput = z.infer<typeof parentSchema>;

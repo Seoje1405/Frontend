@@ -2,7 +2,7 @@ import { getMealData } from '@/lib/data/home';
 import MediCard from './medi-card';
 
 interface MediCardSectionProps {
-  patientId: string;
+  patientId: number;
   date: string;
 }
 

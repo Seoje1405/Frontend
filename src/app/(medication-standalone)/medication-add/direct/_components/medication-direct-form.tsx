@@ -1,11 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Search } from 'lucide-react';
+import { registerMedications } from '@/lib/actions/medication';
+import type { MedicationRegisterInput } from '@/lib/schema/medication';
+import { useOcrResultStore } from '@/lib/stores/ocr-result-store';
+import dayjs from 'dayjs';
+import { ChevronLeft } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useReducer, useRef } from 'react';
+import { useEffect, useReducer, useRef, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { AddCardButton } from './add-card-button';
+import { HospitalSearchInput } from './hospital-search-input';
 import { MedicationFormCard } from './medication-form-card';
 import type { CardAction, DosingTime, MedicationCard } from './types';
 
@@ -38,6 +43,13 @@ function getAutoDosingTimes(frequency: 1 | 2 | 3 | null): DosingTime[] {
   }
 }
 
+// OCR이 인식한 하루 복용 횟수를 폼이 다루는 1~3 범위로 정규화(범위 밖이면 미지정 처리)
+function normalizeFrequency(timesPerDay: number | null): 1 | 2 | 3 | null {
+  return timesPerDay !== null && timesPerDay >= 1 && timesPerDay <= 3
+    ? (timesPerDay as 1 | 2 | 3)
+    : null;
+}
+
 function reducer(state: MedicationCard[], action: CardAction): MedicationCard[] {
   switch (action.type) {
     case 'ADD_CARD':
@@ -47,8 +59,16 @@ function reducer(state: MedicationCard[], action: CardAction): MedicationCard[] 
       const withoutEmpty = state.filter(
         (c) => c.medicationName.trim() !== '' || c.nickname.trim() !== '',
       );
-      return [...withoutEmpty, createCard({ medicationName: action.payload.medicationName })];
+      return [
+        ...withoutEmpty,
+        createCard({
+          medicationName: action.payload.medicationName,
+          autoMemo: action.payload.autoMemo ?? '',
+        }),
+      ];
     }
+    case 'ADD_CARDS_FROM_OCR':
+      return action.payload;
     case 'REMOVE_CARD': {
       const filtered = state.filter((c) => c.id !== action.id);
       return filtered.length > 0 ? filtered : [createCard()];
@@ -70,13 +90,38 @@ function reducer(state: MedicationCard[], action: CardAction): MedicationCard[] 
   }
 }
 
+// 복용 시작~종료일을 백엔드가 받는 총 복용일수로 변환(당일 포함 계산)
+function toTotalDays(start: Date | null, end: Date | null): number | null {
+  if (!start || !end) return null;
+  const diff = dayjs(end).diff(dayjs(start), 'day') + 1;
+  return diff > 0 ? diff : null;
+}
+
+function validateCards(cards: MedicationCard[]): string | null {
+  for (const card of cards) {
+    if (!card.medicationName.trim()) return '약 이름을 입력해주세요.';
+    if (!card.startDate) return '복용 시작일을 선택해주세요.';
+  }
+  return null;
+}
+
 export function MedicationDirectForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [cards, dispatch] = useReducer(reducer, null, () => [createCard()]);
+  const [hospitalName, setHospitalName] = useState('');
+  const [ocrMeta, setOcrMeta] = useState<{
+    ocrResultId: number | null;
+    prescriptionDate: string | null;
+  }>({ ocrResultId: null, prescriptionDate: null });
+  const [isPending, startTransition] = useTransition();
   const processedTsRef = useRef<string | null>(null);
+  const ocrConsumedRef = useRef(false);
   const drugName = searchParams.get('drugName');
+  const autoMemo = searchParams.get('autoMemo');
   const ts = searchParams.get('ts');
+  const ocrResult = useOcrResultStore((s) => s.result);
+  const clearOcrResult = useOcrResultStore((s) => s.clear);
 
   // 검색 결과 복귀 시 새 카드 자동 추가 (ts로 중복 dispatch 방지)
   useEffect(() => {
@@ -84,13 +129,71 @@ export function MedicationDirectForm() {
     processedTsRef.current = ts;
     dispatch({
       type: 'ADD_CARD_WITH_DRUG',
-      payload: { medicationName: decodeURIComponent(drugName) },
+      payload: {
+        medicationName: decodeURIComponent(drugName),
+        autoMemo: autoMemo ? decodeURIComponent(autoMemo) : undefined,
+      },
     });
-  }, [drugName, ts]);
+  }, [drugName, autoMemo, ts]);
+
+  // OCR 스캔 결과 도착 시 파싱된 약들로 카드 배열을 교체 (1회만 반영)
+  useEffect(() => {
+    if (!ocrResult || ocrConsumedRef.current) return;
+    ocrConsumedRef.current = true;
+
+    const parsedCards = ocrResult.parsedDrugs.map((drug) => {
+      const frequency = normalizeFrequency(drug.timesPerDay);
+      return createCard({
+        medicationName: drug.drugName ?? '',
+        dosagePerOnce: drug.dosagePerTime ?? '',
+        frequency,
+        dosingTimes: getAutoDosingTimes(frequency),
+      });
+    });
+
+    if (parsedCards.length > 0) {
+      dispatch({ type: 'ADD_CARDS_FROM_OCR', payload: parsedCards });
+    }
+    setOcrMeta({
+      ocrResultId: ocrResult.ocrResultId,
+      prescriptionDate: ocrResult.prescriptionDate,
+    });
+    clearOcrResult();
+  }, [ocrResult, clearOcrResult]);
 
   function handleSubmit() {
-    toast.success('약물이 등록 되었어요!');
-    router.push('/note');
+    const validationError = validateCards(cards);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
+    const payload: MedicationRegisterInput = {
+      hospitalName,
+      ocrResultId: ocrMeta.ocrResultId,
+      prescriptionDate: ocrMeta.prescriptionDate,
+      cards: cards.map((card) => ({
+        nickname: card.nickname,
+        medicationName: card.medicationName,
+        dosagePerOnce: card.dosagePerOnce,
+        dosingTimesCount: card.frequency,
+        memo: card.memo,
+        startDate: dayjs(card.startDate).format('YYYY-MM-DD'),
+        totalDays: toTotalDays(card.startDate, card.endDate),
+      })),
+    };
+
+    startTransition(async () => {
+      const result = await registerMedications(payload);
+
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
+
+      toast.success('약물이 등록 되었어요!');
+      router.push('/note');
+    });
   }
 
   return (
@@ -131,27 +234,15 @@ export function MedicationDirectForm() {
             <label htmlFor="hospital-name" className="text-muted-foreground text-xs font-medium">
               처방 병원 <span className="font-normal">(선택)</span>
             </label>
-            <div className="relative">
-              <Search
-                size={16}
-                className="text-ink-400 absolute top-1/2 left-3 -translate-y-1/2"
-                aria-hidden
-              />
-              <input
-                id="hospital-name"
-                type="text"
-                placeholder="병원을 입력하세요"
-                className="border-border bg-background placeholder:text-ink-500 focus:border-primary focus:ring-primary w-full rounded-md border py-2 pr-3 pl-9 text-sm focus:ring-1 focus:outline-none"
-              />
-            </div>
+            <HospitalSearchInput value={hospitalName} onChange={setHospitalName} />
           </div>
         </section>
       </main>
 
       {/* 하단 CTA */}
       <div className="border-border bg-card fixed bottom-0 left-1/2 w-full max-w-[390px] -translate-x-1/2 border-t px-4 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-        <Button size="cta" onClick={handleSubmit}>
-          등록하기
+        <Button size="cta" onClick={handleSubmit} disabled={isPending}>
+          {isPending ? '등록 중...' : '등록하기'}
         </Button>
       </div>
     </div>

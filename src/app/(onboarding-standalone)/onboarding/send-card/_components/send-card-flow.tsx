@@ -52,7 +52,7 @@ export function SendCardFlow({ card }: SendCardFlowProps) {
   }
 
   function handleGoHome() {
-    router.push('/');
+    router.push('/home');
   }
 
   const isSent = phase === 'sent';

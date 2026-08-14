@@ -2,7 +2,7 @@ import { getCurrentCards } from '@/lib/data/home';
 import HomeCurrentCard from './home-current-card';
 
 interface CurrentCardSectionProps {
-  patientId: string;
+  patientId: number;
   date: string;
 }
 

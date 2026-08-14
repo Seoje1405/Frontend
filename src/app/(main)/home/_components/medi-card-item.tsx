@@ -5,6 +5,7 @@ import type { MedColor, Medication } from '@/lib/data/types';
 import { cn } from '@/lib/utils';
 import { CircleCheck, Pill } from 'lucide-react';
 import { useOptimistic, useState, useTransition } from 'react';
+import { toast } from 'sonner';
 
 const MED_COLOR: Record<MedColor, { bg: string; text: string }> = {
   blue: { bg: 'bg-med-blue-bg', text: 'text-med-blue' },
@@ -18,7 +19,6 @@ interface MediCardItemProps {
 
 export function MediCardItem({ med }: MediCardItemProps) {
   const [isPending, startTransition] = useTransition();
-  // API 연동 전까지 로컬에서 커밋 상태를 유지; 연동 후에는 revalidatePath로 대체
   const [localChecked, setLocalChecked] = useState(med.checked);
   const [optimisticChecked, setOptimisticChecked] = useOptimistic(
     localChecked,
@@ -30,8 +30,13 @@ export function MediCardItem({ med }: MediCardItemProps) {
     const next = !optimisticChecked;
     startTransition(async () => {
       setOptimisticChecked(next);
-      await checkMedication(med.id, next);
-      setLocalChecked(next);
+      const result = await checkMedication(med.id, med.mealTime);
+      if (result.ok) {
+        // 백엔드가 "반전"만 지원하므로 클라이언트가 예측한 값이 아니라 서버 응답을 최종 상태로 신뢰
+        setLocalChecked(result.isTaken);
+      } else {
+        toast.error(result.error);
+      }
     });
   };
 
@@ -85,8 +90,8 @@ export function MediCardItem({ med }: MediCardItemProps) {
         aria-pressed={optimisticChecked}
         aria-label={`${med.name} 복용 확인`}
         onClick={handleToggle}
-        disabled={isPending}
-        className="focus-visible:ring-primary -m-2.5 shrink-0 p-2.5 focus-visible:rounded-full focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
+        disabled={isPending || !med.editable}
+        className="focus-visible:ring-primary -m-2.5 shrink-0 p-2.5 focus-visible:rounded-full focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-60"
       >
         <CircleCheck
           aria-hidden="true"

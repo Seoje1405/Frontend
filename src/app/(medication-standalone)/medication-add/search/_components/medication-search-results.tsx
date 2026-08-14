@@ -1,25 +1,19 @@
 'use client';
 
+import type { DrugSearchResponse } from '@/types/api';
 import Link from 'next/link';
 import { MedicationResultItem } from './medication-result-item';
 
-export type DrugItem = {
-  code: string;
-  name: string;
-  manufacturer: string;
-  category: string;
-};
-
 interface MedicationSearchResultsProps {
-  results: DrugItem[];
-  selectedCode: string | null;
-  onSelect: (drug: DrugItem) => void;
+  results: DrugSearchResponse[];
+  selectedItemSeq: string | null;
+  onSelect: (drug: DrugSearchResponse) => void;
   hasQuery: boolean;
 }
 
 export function MedicationSearchResults({
   results,
-  selectedCode,
+  selectedItemSeq,
   onSelect,
   hasQuery,
 }: MedicationSearchResultsProps) {
@@ -62,10 +56,10 @@ export function MedicationSearchResults({
           <p className="text-muted-foreground text-xs">검색 결과 {results.length}건</p>
           <ul className="flex flex-col gap-2" aria-label="검색 결과 목록">
             {results.map((drug) => (
-              <li key={drug.code}>
+              <li key={drug.itemSeq}>
                 <MedicationResultItem
                   drug={drug}
-                  isSelected={selectedCode === drug.code}
+                  isSelected={selectedItemSeq === drug.itemSeq}
                   onSelect={() => onSelect(drug)}
                 />
               </li>
