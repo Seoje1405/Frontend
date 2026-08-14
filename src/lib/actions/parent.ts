@@ -5,6 +5,7 @@ import { REGISTERING_PARENT_PHONE_COOKIE } from '@/lib/auth/constants';
 import { getSeniorId, setMealTimes, setSeniorId, setSeniorName } from '@/lib/auth/session';
 import { mealTimeSchema, toHHmm } from '@/lib/schema/meal-time';
 import { parentSchema } from '@/lib/schema/parent';
+import { phoneSchema } from '@/lib/schema/phone';
 import type {
   PhoneVerificationSendRequest,
   PhoneVerificationSendResponse,
@@ -21,7 +22,14 @@ type ActionResult = { ok: true } | { ok: false; error: string };
 export async function requestParentCode(
   phoneRaw: string,
 ): Promise<{ ok: true; verificationCode: string } | { ok: false; error: string }> {
-  const phone = phoneRaw.replace(/\D/g, '');
+  const parsed = phoneSchema.safeParse(phoneRaw);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? '휴대폰 번호를 확인해주세요.',
+    };
+  }
+  const phone = parsed.data;
 
   try {
     const { verificationCode } = await apiClient.post<PhoneVerificationSendResponse>(
