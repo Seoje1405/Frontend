@@ -48,23 +48,25 @@ export function MealTimeForm() {
     setEditing(null);
   }
 
-  function handleSkip() {
-    start(async () => {
+  // 건너뛰기도 현재 시각(수정 없었다면 기본값)을 그대로 저장 — 완료하기와 저장 로직 공유
+  async function persistAndProceed() {
+    const result = await saveMealTimes(meals);
+    if (result.ok) {
       router.push('/onboarding/send-card');
-    });
+    } else {
+      setError(result.error);
+    }
+  }
+
+  function handleSkip() {
+    setError('');
+    start(persistAndProceed);
   }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
-    start(async () => {
-      const result = await saveMealTimes(meals);
-      if (result.ok) {
-        router.push('/onboarding/send-card');
-      } else {
-        setError(result.error);
-      }
-    });
+    start(persistAndProceed);
   }
 
   return (
