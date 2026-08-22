@@ -164,7 +164,7 @@ function DateFilterContent() {
     if (query) params.set('q', query);
     if (from) params.set('from', from);
     if (to) params.set('to', to);
-    router.push(`/note/search?${params.toString()}`);
+    router.push(`/note?${params.toString()}`);
   }
 
   return (

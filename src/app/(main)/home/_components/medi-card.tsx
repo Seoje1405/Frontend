@@ -1,8 +1,7 @@
-import { Button } from '@/components/ui/button';
 import type { MealGroup, MealType } from '@/lib/data/types';
 import { cn } from '@/lib/utils';
 import { Hospital } from 'lucide-react';
-import Link from 'next/link';
+import { EmptyMediCardCta } from './empty-medi-card-cta';
 import { MediCardItem } from './medi-card-item';
 
 const MEAL_COLOR: Record<MealType, { text: string; dot: string }> = {
@@ -22,9 +21,7 @@ export default function MediCard({ data }: MediCardProps) {
         <p className="kr-wrap text-foreground text-center text-2xl font-bold">
           오늘 먹을 약이 없네요
         </p>
-        <Button asChild className="shadow-fab h-14 rounded-2xl px-10 font-bold">
-          <Link href="/register">약 등록하기</Link>
-        </Button>
+        <EmptyMediCardCta />
       </div>
     );
   }

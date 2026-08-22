@@ -1,14 +1,20 @@
 'use server';
 
 import { ApiError, apiClient } from '@/lib/api/client';
-import { getSeniorId } from '@/lib/auth/session';
-import { medicationRegisterSchema, type MedicationRegisterInput } from '@/lib/schema/medication';
+import { getSeniorId, isAuthenticated } from '@/lib/auth/session';
+import {
+  medicationRegisterSchema,
+  medicationUpdateSchema,
+  type MedicationRegisterInput,
+  type MedicationUpdateInput,
+} from '@/lib/schema/medication';
 import type {
   MealTime,
   MedicationCreateRequest,
   MedicationLogToggleRequest,
   MedicationLogToggleResponse,
   MedicationResponse,
+  MedicationUpdateRequest,
 } from '@/types/api';
 import { revalidatePath } from 'next/cache';
 
@@ -76,6 +82,70 @@ export async function registerMedications(input: MedicationRegisterInput): Promi
     revalidatePath('/home');
     revalidatePath('/note');
     return { ok: true, medications };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return { ok: false, error: error.message };
+    }
+    throw error;
+  }
+}
+
+type UpdateResult = { ok: true } | { ok: false; error: string };
+
+export async function updateMedication(
+  medicationId: number,
+  input: MedicationUpdateInput,
+): Promise<UpdateResult> {
+  const parsed = medicationUpdateSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? '입력값을 확인해주세요.' };
+  }
+
+  // Server Action은 API 라우트와 동일하게 공개 엔드포인트로 취급 — 페이지 가드와 별개로 액션 내부에서도 세션 검증
+  if (!(await isAuthenticated())) {
+    return { ok: false, error: '로그인이 필요합니다.' };
+  }
+
+  // 등록 흐름과 동일하게 별명(nickname)을 약 이름 앞에 붙여 보존(백엔드에 별도 필드 없음)
+  const request: MedicationUpdateRequest = {
+    drugName: parsed.data.nickname.trim()
+      ? `[${parsed.data.nickname.trim()}] ${parsed.data.medicationName}`
+      : parsed.data.medicationName,
+    dosagePerTime: parsed.data.dosagePerOnce || null,
+    timesPerDay: parsed.data.dosingTimesCount,
+    totalDays: parsed.data.totalDays,
+    startDate: parsed.data.startDate,
+    hospitalName: parsed.data.hospitalName || null,
+    memo: parsed.data.memo || null,
+  };
+
+  try {
+    await apiClient.patch(`/api/medications/${medicationId}`, request);
+    revalidatePath('/home');
+    revalidatePath('/note');
+    revalidatePath(`/note/${medicationId}`);
+    return { ok: true };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return { ok: false, error: error.message };
+    }
+    throw error;
+  }
+}
+
+type DeleteResult = { ok: true } | { ok: false; error: string };
+
+export async function deleteMedication(medicationId: number): Promise<DeleteResult> {
+  // Server Action은 API 라우트와 동일하게 공개 엔드포인트로 취급 — 페이지 가드와 별개로 액션 내부에서도 세션 검증
+  if (!(await isAuthenticated())) {
+    return { ok: false, error: '로그인이 필요합니다.' };
+  }
+
+  try {
+    await apiClient.delete(`/api/medications/${medicationId}`);
+    revalidatePath('/home');
+    revalidatePath('/note');
+    return { ok: true };
   } catch (error) {
     if (error instanceof ApiError) {
       return { ok: false, error: error.message };

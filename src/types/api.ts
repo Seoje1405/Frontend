@@ -256,6 +256,7 @@ export interface MedicationCardResponse {
   imageUrl: string | null;
   dosagePerTime: string | null;
   timesPerDay: number | null;
+  totalDays: number | null;
   isTaken: boolean | null; // 오늘/미래만; 과거는 null
   completedStatus: CompletedStatus | null; // 과거 전용
 }
@@ -293,12 +294,19 @@ export interface HospitalSearchResponse {
 // DrugConflict — 약물 상호작용
 // ============================================================
 
+export interface ConflictDrug {
+  medicationId: number;
+  drugType: string | null;
+  drugName: string;
+  drugNickname: string | null;
+  hospitalName: string | null;
+  prescriptionDate: string | null; // 'YYYY-MM-DD', 없으면 startDate로 폴백
+}
+
 export interface DrugConflictResponse {
   conflictId: number;
-  medicationId1: number;
-  drugName1: string;
-  medicationId2: number;
-  drugName2: string;
+  drug1: ConflictDrug;
+  drug2: ConflictDrug;
   severity: ConflictSeverity;
   severityLabel: string;
   isResolved: boolean;
@@ -306,12 +314,8 @@ export interface DrugConflictResponse {
 
 export interface DrugConflictDetailResponse {
   conflictId: number;
-  medicationId1: number;
-  drugName1: string;
-  drugNickname1: string | null;
-  medicationId2: number;
-  drugName2: string;
-  drugNickname2: string | null;
+  drug1: ConflictDrug;
+  drug2: ConflictDrug;
   severity: ConflictSeverity;
   severityLabel: string;
   conflictDescription: string | null;

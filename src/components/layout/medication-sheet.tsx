@@ -8,6 +8,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { MAX_OCR_IMAGE_BYTES } from '@/lib/constants/upload';
+import { useMedicationDraftStore } from '@/lib/stores/medication-draft-store';
 import { useMedicationSheetStore } from '@/lib/stores/medication-sheet-store';
 import { useOcrResultStore } from '@/lib/stores/ocr-result-store';
 import type { OcrResultResponse } from '@/types/api';
@@ -24,6 +25,7 @@ export function MedicationSheet() {
   const isOpen = useMedicationSheetStore((s) => s.isOpen);
   const close = useMedicationSheetStore((s) => s.close);
   const setOcrResult = useOcrResultStore((s) => s.setResult);
+  const resetDraft = useMedicationDraftStore((s) => s.reset);
   const router = useRouter();
   const [imageSourceOpen, setImageSourceOpen] = useState(false);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -31,6 +33,7 @@ export function MedicationSheet() {
 
   function handleDirectInput() {
     close();
+    resetDraft();
     router.push('/medication-add/direct');
   }
 

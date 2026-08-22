@@ -3,99 +3,20 @@
 import { Button } from '@/components/ui/button';
 import { registerMedications } from '@/lib/actions/medication';
 import type { MedicationRegisterInput } from '@/lib/schema/medication';
+import { useMedicationDraftStore } from '@/lib/stores/medication-draft-store';
 import { useOcrResultStore } from '@/lib/stores/ocr-result-store';
+import { useReregisterStore } from '@/lib/stores/reregister-store';
 import dayjs from 'dayjs';
 import { ChevronLeft } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useReducer, useRef, useState, useTransition } from 'react';
+import { useEffect, useRef, useTransition } from 'react';
 import { toast } from 'sonner';
 import { AddCardButton } from './add-card-button';
+import { createCard } from './card-factory';
+import { getAutoDosingTimes, normalizeFrequency, toTotalDays } from './dosing';
 import { HospitalSearchInput } from './hospital-search-input';
 import { MedicationFormCard } from './medication-form-card';
-import type { CardAction, DosingTime, MedicationCard } from './types';
-
-function createCard(override: Partial<MedicationCard> = {}): MedicationCard {
-  return {
-    id: crypto.randomUUID(),
-    nickname: '',
-    medicationName: '',
-    frequency: null,
-    dosagePerOnce: '',
-    dosingTimes: [],
-    memo: '',
-    autoMemo: '',
-    startDate: null,
-    endDate: null,
-    ...override,
-  };
-}
-
-function getAutoDosingTimes(frequency: 1 | 2 | 3 | null): DosingTime[] {
-  switch (frequency) {
-    case 1:
-      return ['noon'];
-    case 2:
-      return ['morning', 'noon'];
-    case 3:
-      return ['morning', 'noon', 'night'];
-    default:
-      return [];
-  }
-}
-
-// OCR이 인식한 하루 복용 횟수를 폼이 다루는 1~3 범위로 정규화(범위 밖이면 미지정 처리)
-function normalizeFrequency(timesPerDay: number | null): 1 | 2 | 3 | null {
-  return timesPerDay !== null && timesPerDay >= 1 && timesPerDay <= 3
-    ? (timesPerDay as 1 | 2 | 3)
-    : null;
-}
-
-function reducer(state: MedicationCard[], action: CardAction): MedicationCard[] {
-  switch (action.type) {
-    case 'ADD_CARD':
-      return [...state, createCard()];
-    case 'ADD_CARD_WITH_DRUG': {
-      // 아무것도 입력되지 않은 빈 카드를 제거 후 새 카드 추가
-      const withoutEmpty = state.filter(
-        (c) => c.medicationName.trim() !== '' || c.nickname.trim() !== '',
-      );
-      return [
-        ...withoutEmpty,
-        createCard({
-          medicationName: action.payload.medicationName,
-          autoMemo: action.payload.autoMemo ?? '',
-        }),
-      ];
-    }
-    case 'ADD_CARDS_FROM_OCR':
-      return action.payload;
-    case 'REMOVE_CARD': {
-      const filtered = state.filter((c) => c.id !== action.id);
-      return filtered.length > 0 ? filtered : [createCard()];
-    }
-    case 'UPDATE_CARD':
-      return state.map((card) => {
-        if (card.id !== action.id) return card;
-        const updated = { ...card, ...action.payload };
-        if ('frequency' in action.payload) {
-          // 횟수 변경 → 시기 자동 설정
-          updated.dosingTimes = getAutoDosingTimes(updated.frequency);
-        } else if ('dosingTimes' in action.payload) {
-          // 시기 변경 → 횟수를 선택 수에 맞게 자동 반영
-          const count = updated.dosingTimes.length;
-          updated.frequency = count >= 1 && count <= 3 ? (count as 1 | 2 | 3) : null;
-        }
-        return updated;
-      });
-  }
-}
-
-// 복용 시작~종료일을 백엔드가 받는 총 복용일수로 변환(당일 포함 계산)
-function toTotalDays(start: Date | null, end: Date | null): number | null {
-  if (!start || !end) return null;
-  const diff = dayjs(end).diff(dayjs(start), 'day') + 1;
-  return diff > 0 ? diff : null;
-}
+import type { MedicationCard } from './types';
 
 function validateCards(cards: MedicationCard[]): string | null {
   for (const card of cards) {
@@ -108,33 +29,55 @@ function validateCards(cards: MedicationCard[]): string | null {
 export function MedicationDirectForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [cards, dispatch] = useReducer(reducer, null, () => [createCard()]);
-  const [hospitalName, setHospitalName] = useState('');
-  const [ocrMeta, setOcrMeta] = useState<{
-    ocrResultId: number | null;
-    prescriptionDate: string | null;
-  }>({ ocrResultId: null, prescriptionDate: null });
+  const cards = useMedicationDraftStore((s) => s.cards);
+  const hospitalName = useMedicationDraftStore((s) => s.hospitalName);
+  const ocrMeta = useMedicationDraftStore((s) => s.ocrMeta);
+  const addCardWithDrug = useMedicationDraftStore((s) => s.addCardWithDrug);
+  const updateCard = useMedicationDraftStore((s) => s.updateCard);
+  const removeCard = useMedicationDraftStore((s) => s.removeCard);
+  const setCards = useMedicationDraftStore((s) => s.setCards);
+  const setHospitalName = useMedicationDraftStore((s) => s.setHospitalName);
+  const setOcrMeta = useMedicationDraftStore((s) => s.setOcrMeta);
+  const resetDraft = useMedicationDraftStore((s) => s.reset);
   const [isPending, startTransition] = useTransition();
   const processedTsRef = useRef<string | null>(null);
   const ocrConsumedRef = useRef(false);
+  const cardId = searchParams.get('cardId');
   const drugName = searchParams.get('drugName');
+  const nickname = searchParams.get('nickname');
   const autoMemo = searchParams.get('autoMemo');
   const ts = searchParams.get('ts');
   const ocrResult = useOcrResultStore((s) => s.result);
   const clearOcrResult = useOcrResultStore((s) => s.clear);
+  const reregisterDetails = useReregisterStore((s) => s.details);
+  const reregisterHospitalName = useReregisterStore((s) => s.hospitalName);
+  const clearReregister = useReregisterStore((s) => s.clear);
+  const reregisterConsumedRef = useRef(false);
 
-  // 검색 결과 복귀 시 새 카드 자동 추가 (ts로 중복 dispatch 방지)
+  // 검색 결과 복귀 시 반영 (ts로 중복 dispatch 방지)
+  // cardId가 있으면 해당 카드의 약 이름만 채우고, 없으면(=약 추가하기 흐름) 새 카드를 추가
   useEffect(() => {
     if (!drugName || !ts || ts === processedTsRef.current) return;
     processedTsRef.current = ts;
-    dispatch({
-      type: 'ADD_CARD_WITH_DRUG',
-      payload: {
-        medicationName: decodeURIComponent(drugName),
-        autoMemo: autoMemo ? decodeURIComponent(autoMemo) : undefined,
-      },
-    });
-  }, [drugName, autoMemo, ts]);
+
+    const decodedName = decodeURIComponent(drugName);
+    const decodedNickname = nickname ? decodeURIComponent(nickname) : undefined;
+    const decodedAutoMemo = autoMemo ? decodeURIComponent(autoMemo) : undefined;
+
+    if (cardId) {
+      updateCard(cardId, {
+        medicationName: decodedName,
+        nickname: decodedNickname ?? '',
+        autoMemo: decodedAutoMemo ?? '',
+      });
+    } else {
+      addCardWithDrug({
+        medicationName: decodedName,
+        nickname: decodedNickname,
+        autoMemo: decodedAutoMemo,
+      });
+    }
+  }, [cardId, drugName, nickname, autoMemo, ts, updateCard, addCardWithDrug]);
 
   // OCR 스캔 결과 도착 시 파싱된 약들로 카드 배열을 교체 (1회만 반영)
   useEffect(() => {
@@ -152,14 +95,36 @@ export function MedicationDirectForm() {
     });
 
     if (parsedCards.length > 0) {
-      dispatch({ type: 'ADD_CARDS_FROM_OCR', payload: parsedCards });
+      setCards(parsedCards);
     }
     setOcrMeta({
       ocrResultId: ocrResult.ocrResultId,
       prescriptionDate: ocrResult.prescriptionDate,
     });
     clearOcrResult();
-  }, [ocrResult, clearOcrResult]);
+  }, [ocrResult, clearOcrResult, setCards, setOcrMeta]);
+
+  // 약물노트 '재등록' 진입 시 조회해둔 상세 정보로 카드 배열을 교체 (1회만 반영)
+  useEffect(() => {
+    if (reregisterDetails.length === 0 || reregisterConsumedRef.current) return;
+    reregisterConsumedRef.current = true;
+
+    const prefilledCards = reregisterDetails.map((detail) => {
+      const frequency = normalizeFrequency(detail.timesPerDay);
+      return createCard({
+        nickname: detail.drugNickname ?? '',
+        medicationName: detail.drugName,
+        dosagePerOnce: detail.dosagePerTime ?? '',
+        frequency,
+        dosingTimes: getAutoDosingTimes(frequency),
+        memo: detail.memo ?? '',
+      });
+    });
+
+    setCards(prefilledCards);
+    setHospitalName(reregisterHospitalName);
+    clearReregister();
+  }, [reregisterDetails, reregisterHospitalName, clearReregister, setCards, setHospitalName]);
 
   function handleSubmit() {
     const validationError = validateCards(cards);
@@ -192,6 +157,7 @@ export function MedicationDirectForm() {
       }
 
       toast.success('약물이 등록 되었어요!');
+      resetDraft();
       router.push('/note');
     });
   }
@@ -220,8 +186,8 @@ export function MedicationDirectForm() {
             key={card.id}
             card={card}
             cardIndex={index}
-            onChange={(payload) => dispatch({ type: 'UPDATE_CARD', id: card.id, payload })}
-            onDelete={() => dispatch({ type: 'REMOVE_CARD', id: card.id })}
+            onChange={(payload) => updateCard(card.id, payload)}
+            onDelete={() => removeCard(card.id)}
           />
         ))}
 

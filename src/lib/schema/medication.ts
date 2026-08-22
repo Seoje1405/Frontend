@@ -21,3 +21,9 @@ export const medicationRegisterSchema = z.object({
 });
 
 export type MedicationRegisterInput = z.infer<typeof medicationRegisterSchema>;
+
+export const medicationUpdateSchema = medicationCardSchema.extend({
+  hospitalName: z.string(),
+});
+
+export type MedicationUpdateInput = z.infer<typeof medicationUpdateSchema>;

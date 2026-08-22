@@ -1,70 +1,37 @@
 'use client';
 
-import { searchMedications } from '@/lib/data/note';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useDeferredValue, useState } from 'react';
-import { DateFilterBadge } from './_components/date-filter-badge';
+import { Suspense, useState } from 'react';
 import { RecentSearches, useRecentSearches } from './_components/recent-searches';
 import { SearchInput } from './_components/search-input';
-import { SearchResults } from './_components/search-results';
 
 function NoteSearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const dateFrom = searchParams.get('from') ?? '';
-  const dateTo = searchParams.get('to') ?? '';
-
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
-  const deferredQuery = useDeferredValue(query);
   const { recents, addRecent, removeRecent, clearAll } = useRecentSearches();
 
-  const results = deferredQuery.trim() ? searchMedications(deferredQuery) : [];
-  const showResults = deferredQuery.trim().length > 0;
-
-  function handleSelectRecent(q: string) {
-    setQuery(q);
-    addRecent(q);
-  }
-
-  function handleSearchSubmit(q: string) {
-    if (q.trim()) addRecent(q.trim());
-  }
-
-  function handleDateFilterClick() {
-    const params = new URLSearchParams();
-    if (query) params.set('q', query);
-    if (dateFrom) params.set('from', dateFrom);
-    if (dateTo) params.set('to', dateTo);
-    router.push(`/note/search/date-filter?${params.toString()}`);
+  // 검색어를 쿼리로 들고 목록 페이지(/note)로 돌아가서 그 자리에서 결과를 보여줌
+  function goToResults(q: string) {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+    addRecent(trimmed);
+    router.push(`/note?q=${encodeURIComponent(trimmed)}`);
   }
 
   return (
     <>
       <h1 className="sr-only">약물 검색</h1>
-      <SearchInput value={query} onSearch={setQuery} onSubmit={handleSearchSubmit} />
-
-      {showResults ? (
-        <div className="px-4 pt-3 pb-1">
-          <DateFilterBadge
-            from={dateFrom || undefined}
-            to={dateTo || undefined}
-            onClick={handleDateFilterClick}
-          />
-        </div>
-      ) : null}
+      <SearchInput value={query} onSearch={setQuery} onSubmit={goToResults} />
 
       <div className="flex-1 pt-2">
-        {showResults ? (
-          <SearchResults results={results} query={query.trim()} />
-        ) : (
-          <RecentSearches
-            recents={recents}
-            onSelect={handleSelectRecent}
-            onRemove={removeRecent}
-            onClearAll={clearAll}
-          />
-        )}
+        <RecentSearches
+          recents={recents}
+          onSelect={goToResults}
+          onRemove={removeRecent}
+          onClearAll={clearAll}
+        />
       </div>
     </>
   );

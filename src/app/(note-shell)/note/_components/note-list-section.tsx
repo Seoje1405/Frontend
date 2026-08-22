@@ -2,8 +2,12 @@ import { getNotePrescriptions } from '@/lib/data/note';
 import { FileX } from 'lucide-react';
 import { NoteListClient } from './note-list-client';
 
-export async function NoteListSection() {
-  const prescriptions = getNotePrescriptions();
+interface NoteListSectionProps {
+  seniorId: number;
+}
+
+export async function NoteListSection({ seniorId }: NoteListSectionProps) {
+  const prescriptions = await getNotePrescriptions(seniorId);
 
   if (prescriptions.length === 0) {
     return (

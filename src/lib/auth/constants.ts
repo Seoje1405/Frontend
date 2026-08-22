@@ -3,6 +3,7 @@ export const ACCESS_TOKEN_COOKIE = 'ongil_access_token';
 export const SENIOR_ID_COOKIE = 'ongil_senior_id';
 // GET /api/seniors(조회)가 없어 등록/설정 시점의 값을 세션에 함께 보관해 재사용
 export const SENIOR_NAME_COOKIE = 'ongil_senior_name';
+export const SENIOR_BIRTHDATE_COOKIE = 'ongil_senior_birthdate';
 export const MEAL_TIMES_COOKIE = 'ongil_meal_times';
 
 // OAuth CSRF state 임시 쿠키 — /auth/[provider](발급)와 /auth/callback/[provider](검증)에서 공유

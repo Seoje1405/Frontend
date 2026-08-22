@@ -1,7 +1,8 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Camera, Info, X } from 'lucide-react';
+import { Camera, Info, Search, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useId } from 'react';
 import { DateRangePicker } from './date-range-picker';
 import { DosingTimeToggle } from './dosing-time-toggle';
@@ -12,7 +13,7 @@ interface MedicationFormCardProps {
   card: MedicationCard;
   cardIndex: number;
   onChange: (payload: Partial<MedicationCard>) => void;
-  onDelete: () => void;
+  onDelete?: () => void;
 }
 
 const INPUT_CLASS =
@@ -25,6 +26,7 @@ export function MedicationFormCard({
   onDelete,
 }: MedicationFormCardProps) {
   const uid = useId();
+  const router = useRouter();
 
   return (
     <article
@@ -52,25 +54,37 @@ export function MedicationFormCard({
             className={INPUT_CLASS}
             aria-label="약 별명"
           />
-          <input
-            id={`${uid}-name`}
-            type="text"
-            placeholder="약 이름을 입력하거나 검색하세요"
-            value={card.medicationName}
-            onChange={(e) => onChange({ medicationName: e.target.value })}
-            className={INPUT_CLASS}
-            aria-label="약 이름"
-          />
+          <div className="relative flex items-center">
+            <input
+              id={`${uid}-name`}
+              type="text"
+              placeholder="약 이름을 입력하거나 검색하세요"
+              value={card.medicationName}
+              onChange={(e) => onChange({ medicationName: e.target.value })}
+              className={cn(INPUT_CLASS, 'pr-9')}
+              aria-label="약 이름"
+            />
+            <button
+              type="button"
+              onClick={() => router.push(`/medication-add/search?cardId=${card.id}`)}
+              aria-label="약물 검색"
+              className="text-muted-foreground hover:text-primary focus-visible:ring-primary absolute right-2.5 -m-2.5 p-2.5 transition-colors focus-visible:rounded-md focus-visible:ring-1 focus-visible:outline-none"
+            >
+              <Search size={16} aria-hidden />
+            </button>
+          </div>
         </div>
 
-        <button
-          type="button"
-          aria-label="약 카드 삭제"
-          onClick={onDelete}
-          className="text-muted-foreground hover:text-destructive focus-visible:ring-primary -mt-3 -mr-3 p-3 transition-colors focus-visible:rounded-md focus-visible:ring-2 focus-visible:outline-none"
-        >
-          <X size={18} aria-hidden />
-        </button>
+        {onDelete && (
+          <button
+            type="button"
+            aria-label="약 카드 삭제"
+            onClick={onDelete}
+            className="text-muted-foreground hover:text-destructive focus-visible:ring-primary -mt-3 -mr-3 p-3 transition-colors focus-visible:rounded-md focus-visible:ring-2 focus-visible:outline-none"
+          >
+            <X size={18} aria-hidden />
+          </button>
+        )}
       </div>
 
       <div className="bg-border h-px" />
