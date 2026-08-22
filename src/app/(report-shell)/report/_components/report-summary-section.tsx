@@ -6,11 +6,11 @@ import { ReportMedicationLink } from './report-medication-link';
 import { ReportPdfButton } from './report-pdf-button';
 
 interface ReportSummarySectionProps {
-  patientId: string;
+  seniorId: number;
 }
 
-export async function ReportSummarySection({ patientId }: ReportSummarySectionProps) {
-  const summary = await getReportSummary(patientId);
+export async function ReportSummarySection({ seniorId }: ReportSummarySectionProps) {
+  const summary = await getReportSummary(seniorId);
   const medicationCount = summary.hospitals.reduce(
     (sum, hospital) => sum + hospital.medications.length,
     0,

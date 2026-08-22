@@ -1,13 +1,13 @@
 import { getReportSummary } from '@/lib/data/report';
 
 interface ReportMedicationsHeaderCountProps {
-  patientId: string;
+  seniorId: number;
 }
 
 export async function ReportMedicationsHeaderCount({
-  patientId,
+  seniorId,
 }: ReportMedicationsHeaderCountProps) {
-  const summary = await getReportSummary(patientId);
+  const summary = await getReportSummary(seniorId);
   const medicationCount = summary.hospitals.reduce(
     (sum, hospital) => sum + hospital.medications.length,
     0,

@@ -2,11 +2,11 @@ import { getReportSummary, REPORT_METHOD_NOTE } from '@/lib/data/report';
 import { ReportMedicationItem } from './report-medication-item';
 
 interface ReportMedicationsListProps {
-  patientId: string;
+  seniorId: number;
 }
 
-export async function ReportMedicationsList({ patientId }: ReportMedicationsListProps) {
-  const summary = await getReportSummary(patientId);
+export async function ReportMedicationsList({ seniorId }: ReportMedicationsListProps) {
+  const summary = await getReportSummary(seniorId);
   const medications = summary.hospitals.flatMap((hospital) => hospital.medications);
 
   return (

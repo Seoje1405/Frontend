@@ -54,9 +54,7 @@ export function ReportMedicationItem({ medication }: ReportMedicationItemProps) 
         <ReportField label="처방기관" value={medication.hospitalName ?? '-'} />
         <ReportField label="투약기간" value={`${startDate} ~ ${endDate}`} />
       </div>
-      <div className="mt-2 grid grid-cols-3 gap-2">
-        <ReportField label="1회 투약량" value={medication.dosePerTime} />
-        <ReportField label="1일 투여횟수" value={`${medication.timesPerDay}`} />
+      <div className="mt-2">
         <ReportField label="총 투여일수" value={`${medication.totalDays}일`} />
       </div>
     </div>
