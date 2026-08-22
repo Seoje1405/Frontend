@@ -69,7 +69,9 @@ function toHospitalGroup(
 
 // 같은 병원(hospitalId)이 여러 mealGroup(예: DINNER, BEDTIME)에 걸쳐 나오면 하나로 합침
 function mergeHospitalGroups(base: HospitalGroup[], extra: HospitalGroup[]): HospitalGroup[] {
-  const keyOf = (group: HospitalGroup) => group.id ?? 'none';
+  // hospitalId가 없는 병원은 이름으로 구분(동일 키로 묶여 서로 다른 병원이 병합되는 것 방지)
+  const keyOf = (group: HospitalGroup) =>
+    group.id != null ? `id:${group.id}` : `name:${group.hospital ?? ''}`;
   const merged = new Map(
     base.map((group) => [keyOf(group), { ...group, medications: [...group.medications] }]),
   );
