@@ -43,7 +43,7 @@ export function MediCardItem({ med }: MediCardItemProps) {
   return (
     <li
       className={cn(
-        'flex items-center gap-3 px-4 py-3.5 transition-colors duration-150',
+        'flex items-start gap-3 px-4 py-3.5 transition-colors duration-150',
         optimisticChecked && 'bg-status-active-bg',
       )}
     >

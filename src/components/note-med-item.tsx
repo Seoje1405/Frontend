@@ -24,7 +24,7 @@ export function NoteMedItem({ medication }: NoteMedItemProps) {
       {/* medicationId 단건 API(PATCH/DELETE)와 1:1로 대응시키기 위해 병원 그룹이 아닌 개별 약 행에 배치 */}
       <Link
         href={`/note/${medication.id}`}
-        className="focus-visible:ring-primary flex min-w-0 flex-1 items-center gap-3 transition-opacity duration-100 focus-visible:rounded-lg focus-visible:ring-2 focus-visible:outline-none active:opacity-70"
+        className="focus-visible:ring-primary flex min-w-0 flex-1 items-start gap-3 transition-opacity duration-100 focus-visible:rounded-lg focus-visible:ring-2 focus-visible:outline-none active:opacity-70"
       >
         {/* 약 아이콘 박스 */}
         <div
