@@ -36,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Toaster
           position="bottom-center"
           offset={{ bottom: 'calc(var(--bottom-nav-actual-height) + 0.75rem)' }}
+          mobileOffset={{ bottom: 'calc(var(--bottom-nav-actual-height) + 0.75rem)' }}
         />
       </body>
     </html>
