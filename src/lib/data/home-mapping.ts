@@ -42,12 +42,20 @@ function isDone(med: MedicationCardResponse, mode: DateMode): boolean {
   return mode === 'PAST' ? med.completedStatus === 'COMPLETED' : med.isTaken === true;
 }
 
+function toDosageInfo(med: MedicationCardResponse): string[] {
+  const info: string[] = [];
+  if (med.timesPerDay) info.push(`1일 ${med.timesPerDay}회`);
+  if (med.dosagePerTime) info.push(`1회 ${med.dosagePerTime}`);
+  if (med.totalDays) info.push(`${med.totalDays}일 복용`);
+  return info;
+}
+
 function toMedication(med: MedicationCardResponse, mealTime: MealTime, mode: DateMode): Medication {
   return {
     id: med.medicationId,
     name: med.drugName,
     kind: med.drugType ?? undefined,
-    use: [],
+    use: toDosageInfo(med),
     color: hashMedColor(med.medicationId),
     checked: isDone(med, mode),
     mealTime,

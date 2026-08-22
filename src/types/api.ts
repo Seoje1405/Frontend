@@ -256,6 +256,7 @@ export interface MedicationCardResponse {
   imageUrl: string | null;
   dosagePerTime: string | null;
   timesPerDay: number | null;
+  totalDays: number | null;
   isTaken: boolean | null; // 오늘/미래만; 과거는 null
   completedStatus: CompletedStatus | null; // 과거 전용
 }
