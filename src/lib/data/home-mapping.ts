@@ -1,5 +1,6 @@
 import type { SessionMealTimes } from '@/lib/auth/session';
 import { hashMedColor } from '@/lib/constants/med-colors';
+import { parseNicknamePrefix } from '@/lib/data/nickname';
 import { fromHHmm } from '@/lib/schema/meal-time';
 import type {
   DateMode,
@@ -51,10 +52,15 @@ function toDosageInfo(med: MedicationCardResponse): string[] {
 }
 
 function toMedication(med: MedicationCardResponse, mealTime: MealTime, mode: DateMode): Medication {
+  // drugType(약 종류) 미제공 시, drugName에 박혀있는 별명으로 대체 표시(대괄호는 이름에서 제거)
+  const { nickname, name } = med.drugType
+    ? { nickname: null, name: med.drugName }
+    : parseNicknamePrefix(med.drugName);
+
   return {
     id: med.medicationId,
-    name: med.drugName,
-    kind: med.drugType ?? undefined,
+    name,
+    kind: med.drugType ?? nickname ?? undefined,
     use: toDosageInfo(med),
     color: hashMedColor(med.medicationId),
     checked: isDone(med, mode),

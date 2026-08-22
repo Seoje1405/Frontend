@@ -5,6 +5,7 @@ import type {
   MedicationNoteItemResponse,
 } from '@/types/api';
 import dayjs from 'dayjs';
+import { parseNicknamePrefix } from './nickname';
 import type {
   MedicationEditInitialValues,
   NoteHospitalGroup,
@@ -31,10 +32,15 @@ function toDosageInfo(item: MedicationNoteItemResponse): string[] {
 }
 
 function toNoteMedication(item: MedicationNoteItemResponse): NoteMedication {
+  // drugType(약 종류) 미제공 시, drugName에 박혀있는 별명으로 대체 표시(대괄호는 이름에서 제거)
+  const { nickname, name } = item.drugType
+    ? { nickname: null, name: item.drugName }
+    : parseNicknamePrefix(item.drugName);
+
   return {
     id: String(item.medicationId),
-    name: item.drugName,
-    kind: item.drugType ?? '',
+    name,
+    kind: item.drugType ?? nickname ?? '',
     dosageInfo: toDosageInfo(item),
     status: toNoteStatus(item.isActive),
     color: hashMedColor(item.medicationId),

@@ -39,9 +39,15 @@ export function NoteMedItem({ medication }: NoteMedItemProps) {
 
         {/* 약물 정보 */}
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          {/* 약 종류 + 상태 뱃지 */}
+          {/* 약 종류(또는 없으면 약명) + 상태 뱃지 — 종류 정보가 없을 때 빈 줄이 남지 않도록 약명을 그 자리로 올림 */}
           <div className="flex items-center justify-between gap-2">
-            <span className="text-ink-500 text-sm">{medication.kind}</span>
+            {medication.kind ? (
+              <span className="text-ink-500 text-sm">{medication.kind}</span>
+            ) : (
+              <span className="text-foreground truncate text-base font-semibold">
+                {medication.name}
+              </span>
+            )}
             <span
               className={cn(
                 'shrink-0 rounded-full px-2 py-0.5 text-xs font-medium',
@@ -54,7 +60,9 @@ export function NoteMedItem({ medication }: NoteMedItemProps) {
           </div>
 
           {/* 약명 */}
-          <span className="text-foreground text-base font-semibold">{medication.name}</span>
+          {medication.kind ? (
+            <span className="text-foreground text-base font-semibold">{medication.name}</span>
+          ) : null}
 
           {/* 복용 정보 칩 */}
           <div className="mt-1 flex flex-wrap gap-1.5">
