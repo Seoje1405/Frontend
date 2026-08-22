@@ -33,7 +33,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko" className={pretendard.variable} suppressHydrationWarning>
       <body>
         {children}
-        <Toaster position="top-center" richColors closeButton />
+        <Toaster
+          position="bottom-center"
+          offset={{ bottom: 'calc(var(--bottom-nav-actual-height) + 0.75rem)' }}
+        />
       </body>
     </html>
   );
