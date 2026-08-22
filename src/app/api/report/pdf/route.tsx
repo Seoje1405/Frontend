@@ -1,4 +1,5 @@
-import { getReportSummary, TEMP_PATIENT_ID } from '@/lib/data/report';
+import { getSeniorId } from '@/lib/auth/session';
+import { getReportSummary } from '@/lib/data/report';
 import { ReportPdfDocument } from '@/lib/pdf/report-pdf-document';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { NextResponse } from 'next/server';
@@ -7,7 +8,12 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const summary = await getReportSummary(TEMP_PATIENT_ID);
+  const seniorId = await getSeniorId();
+  if (!seniorId) {
+    return NextResponse.json({ message: '등록된 부모님 정보가 없습니다.' }, { status: 401 });
+  }
+
+  const summary = await getReportSummary(seniorId);
   const document = <ReportPdfDocument summary={summary} />;
 
   try {

@@ -295,14 +295,6 @@ function MedicationCard({ medication }: { medication: ReportMedication }) {
       </View>
       <View style={styles.infoGridRow}>
         <View style={styles.infoGridField}>
-          <Text style={styles.fieldLabel}>1회 투약량</Text>
-          <Text style={styles.fieldValue}>{medication.dosePerTime}</Text>
-        </View>
-        <View style={styles.infoGridField}>
-          <Text style={styles.fieldLabel}>1일 투여횟수</Text>
-          <Text style={styles.fieldValue}>{medication.timesPerDay}</Text>
-        </View>
-        <View style={styles.infoGridField}>
           <Text style={styles.fieldLabel}>총 투여일수</Text>
           <Text style={styles.fieldValue}>{medication.totalDays}일</Text>
         </View>
