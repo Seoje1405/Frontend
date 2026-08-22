@@ -77,7 +77,7 @@ export function MedicationEditForm({ medicationId, initialValues }: MedicationEd
       }
 
       toast.success('약물 정보가 수정되었어요!');
-      router.push(`/note/${medicationId}`);
+      router.push('/note');
     });
   }
 
