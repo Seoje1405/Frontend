@@ -141,8 +141,6 @@ export type ReportMedication = {
   status: ReportMedicationStatus;
   hospitalName?: string;
   dosagePeriod: { startDate: string; endDate: string };
-  dosePerTime: string; // 1회 투약량
-  timesPerDay: number; // 1일 투여횟수
   totalDays: number; // 총 투여일수
 };
 
