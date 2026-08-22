@@ -12,13 +12,3 @@ export type MedicationCard = {
   startDate: Date | null;
   endDate: Date | null;
 };
-
-export type CardAction =
-  | { type: 'ADD_CARD' }
-  | {
-      type: 'ADD_CARD_WITH_DRUG';
-      payload: Pick<MedicationCard, 'medicationName'> & { autoMemo?: string };
-    }
-  | { type: 'SET_CARDS'; payload: MedicationCard[] }
-  | { type: 'REMOVE_CARD'; id: string }
-  | { type: 'UPDATE_CARD'; id: string; payload: Partial<MedicationCard> };

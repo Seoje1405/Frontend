@@ -2,10 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import { useKeywordSearch } from '@/hooks/use-keyword-search';
+import { useMedicationDraftStore } from '@/lib/stores/medication-draft-store';
 import { cn } from '@/lib/utils';
 import type { DrugAutofillResponse, DrugSearchResponse } from '@/types/api';
 import { ChevronLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { MedicationSearchInput } from './_components/medication-search-input';
@@ -13,6 +14,9 @@ import { MedicationSearchResults } from './_components/medication-search-results
 
 export default function MedicationSearchPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const cardId = searchParams.get('cardId');
+  const addCard = useMedicationDraftStore((s) => s.addCard);
   const [query, setQuery] = useState('');
   const [selectedDrug, setSelectedDrug] = useState<DrugSearchResponse | null>(null);
   const [isConfirming, startConfirmTransition] = useTransition();
@@ -27,6 +31,12 @@ export default function MedicationSearchPage() {
 
   function handleSelect(drug: DrugSearchResponse) {
     setSelectedDrug((prev) => (prev?.itemSeq === drug.itemSeq ? null : drug));
+  }
+
+  // 카드 지정 없이(=약 추가하기 흐름) 들어온 경우에만 빈 카드를 새로 만들고, 특정 카드 검색 중이었다면 그 카드로 그대로 복귀
+  function handleManualEntry() {
+    if (!cardId) addCard();
+    router.push('/medication-add/direct');
   }
 
   function handleConfirm() {
@@ -52,6 +62,8 @@ export default function MedicationSearchPage() {
         ts: String(Date.now()),
       });
       if (autoMemo) params.set('autoMemo', autoMemo);
+      if (selectedDrug.spcltyPblc) params.set('nickname', selectedDrug.spcltyPblc);
+      if (cardId) params.set('cardId', cardId);
 
       router.push(`/medication-add/direct?${params.toString()}`);
     });
@@ -92,6 +104,7 @@ export default function MedicationSearchPage() {
           selectedItemSeq={selectedDrug?.itemSeq ?? null}
           onSelect={handleSelect}
           hasQuery={hasQuery}
+          onManualEntry={handleManualEntry}
         />
       </div>
 

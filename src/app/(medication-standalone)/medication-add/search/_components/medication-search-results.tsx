@@ -1,7 +1,6 @@
 'use client';
 
 import type { DrugSearchResponse } from '@/types/api';
-import Link from 'next/link';
 import { MedicationResultItem } from './medication-result-item';
 
 interface MedicationSearchResultsProps {
@@ -9,6 +8,7 @@ interface MedicationSearchResultsProps {
   selectedItemSeq: string | null;
   onSelect: (drug: DrugSearchResponse) => void;
   hasQuery: boolean;
+  onManualEntry: () => void;
 }
 
 export function MedicationSearchResults({
@@ -16,6 +16,7 @@ export function MedicationSearchResults({
   selectedItemSeq,
   onSelect,
   hasQuery,
+  onManualEntry,
 }: MedicationSearchResultsProps) {
   return (
     <>
@@ -30,24 +31,26 @@ export function MedicationSearchResults({
           <p className="text-muted-foreground kr-wrap text-sm">
             약 이름, 제조사 또는 분류로 검색하세요.
           </p>
-          <Link
-            href="/medication-add/direct"
+          <button
+            type="button"
+            onClick={onManualEntry}
             className="text-primary text-sm font-medium underline-offset-4 hover:underline"
           >
             직접 입력하기
-          </Link>
+          </button>
         </div>
       )}
 
       {hasQuery && results.length === 0 && (
         <div className="flex flex-col items-center gap-4 py-12 text-center">
           <p className="text-muted-foreground kr-wrap text-sm">검색 결과가 없어요.</p>
-          <Link
-            href="/medication-add/direct"
+          <button
+            type="button"
+            onClick={onManualEntry}
             className="text-primary text-sm font-medium underline-offset-4 hover:underline"
           >
             찾는 약이 없나요? 직접 입력하기
-          </Link>
+          </button>
         </div>
       )}
 
