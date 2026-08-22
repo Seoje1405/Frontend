@@ -12,7 +12,7 @@ interface MedicationFormCardProps {
   card: MedicationCard;
   cardIndex: number;
   onChange: (payload: Partial<MedicationCard>) => void;
-  onDelete: () => void;
+  onDelete?: () => void;
 }
 
 const INPUT_CLASS =
@@ -63,14 +63,16 @@ export function MedicationFormCard({
           />
         </div>
 
-        <button
-          type="button"
-          aria-label="약 카드 삭제"
-          onClick={onDelete}
-          className="text-muted-foreground hover:text-destructive focus-visible:ring-primary -mt-3 -mr-3 p-3 transition-colors focus-visible:rounded-md focus-visible:ring-2 focus-visible:outline-none"
-        >
-          <X size={18} aria-hidden />
-        </button>
+        {onDelete && (
+          <button
+            type="button"
+            aria-label="약 카드 삭제"
+            onClick={onDelete}
+            className="text-muted-foreground hover:text-destructive focus-visible:ring-primary -mt-3 -mr-3 p-3 transition-colors focus-visible:rounded-md focus-visible:ring-2 focus-visible:outline-none"
+          >
+            <X size={18} aria-hidden />
+          </button>
+        )}
       </div>
 
       <div className="bg-border h-px" />

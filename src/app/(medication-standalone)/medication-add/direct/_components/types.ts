@@ -19,6 +19,6 @@ export type CardAction =
       type: 'ADD_CARD_WITH_DRUG';
       payload: Pick<MedicationCard, 'medicationName'> & { autoMemo?: string };
     }
-  | { type: 'ADD_CARDS_FROM_OCR'; payload: MedicationCard[] }
+  | { type: 'SET_CARDS'; payload: MedicationCard[] }
   | { type: 'REMOVE_CARD'; id: string }
   | { type: 'UPDATE_CARD'; id: string; payload: Partial<MedicationCard> };
