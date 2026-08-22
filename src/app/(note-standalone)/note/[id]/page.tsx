@@ -10,8 +10,10 @@ type Params = Promise<{ id: string }>;
 
 export default async function MedicationDetailPage({ params }: { params: Params }) {
   const { id } = await params;
-  const detail = getMedicationDetail(id);
+  const medicationId = Number(id);
+  if (!Number.isInteger(medicationId)) notFound();
 
+  const detail = await getMedicationDetail(medicationId);
   if (!detail) notFound();
 
   return (

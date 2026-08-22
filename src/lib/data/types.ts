@@ -88,6 +88,18 @@ export type NoteMedicationDetail = {
   };
 };
 
+// 수정 폼 프리필 전용 — MedicationDetailResponse 중 폼이 실제로 쓰는 필드만 RSC 경계를 넘김
+export type MedicationEditInitialValues = {
+  drugNickname: string | null;
+  drugName: string;
+  dosagePerTime: string | null;
+  timesPerDay: number | null;
+  memo: string | null;
+  startDate: string;
+  endDate: string | null;
+  hospitalName: string | null;
+};
+
 // 리포트 타입 (환자당 최신 1건 기준)
 export type ReportGrade = 'BASIC';
 

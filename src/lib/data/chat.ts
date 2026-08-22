@@ -1,7 +1,6 @@
 import { TYPING_DELAY_MS, matchChatScenario } from '@/lib/constants/chat';
 import dayjs from 'dayjs';
 import { MOCK_CHAT_ERROR_FALLBACKS, MOCK_CHAT_SCENARIOS, MOCK_CHAT_SUGGESTIONS } from './mock';
-import { getMedicationDetail } from './note';
 import type {
   ChatErrorFallback,
   ChatErrorFallbackStage,
@@ -48,10 +47,9 @@ function delay(ms: number): Promise<void> {
 // 대화 초기화·홈 이동처럼 API와 무관한 순수 화면 동작은 chat-screen.tsx에 남겨둔다.
 const QUICK_REPLY_HANDLERS: Record<string, () => ChatMessage[]> = {
   'reply-001': () => {
-    const detail = getMedicationDetail('med-002');
-    const text = detail
-      ? `메트포르민정 500mg은 ${detail.tabs.sideEffect}`
-      : '해당 약물 정보를 찾지 못했어요.';
+    // 챗봇 연동 API가 아직 없어 목데이터 시나리오 그대로 유지(약물노트 실API 연동과는 무관한 스코프)
+    const text =
+      '메트포르민정 500mg은 오심, 구토, 설사, 복통 등의 소화기계 증상이 나타날 수 있으며, 대부분 치료 초기에 발생하고 시간이 지나면 사라집니다.';
     return [createMessage('assistant', { type: 'text', text })];
   },
   'reply-002': () => [
