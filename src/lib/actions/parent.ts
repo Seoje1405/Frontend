@@ -2,7 +2,13 @@
 
 import { ApiError, apiClient } from '@/lib/api/client';
 import { REGISTERING_PARENT_PHONE_COOKIE } from '@/lib/auth/constants';
-import { getSeniorId, setMealTimes, setSeniorId, setSeniorName } from '@/lib/auth/session';
+import {
+  getSeniorId,
+  setMealTimes,
+  setSeniorBirthDate,
+  setSeniorId,
+  setSeniorName,
+} from '@/lib/auth/session';
 import { mealTimeSchema, toHHmm } from '@/lib/schema/meal-time';
 import { parentSchema } from '@/lib/schema/parent';
 import { phoneSchema } from '@/lib/schema/phone';
@@ -65,6 +71,7 @@ export async function registerParent(
 
     await setSeniorId(senior.seniorId);
     await setSeniorName(senior.name);
+    await setSeniorBirthDate(senior.birthDate);
     (await cookies()).set(REGISTERING_PARENT_PHONE_COOKIE, data.phone, {
       httpOnly: true,
       path: '/',

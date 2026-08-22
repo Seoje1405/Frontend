@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import {
   ACCESS_TOKEN_COOKIE,
   MEAL_TIMES_COOKIE,
+  SENIOR_BIRTHDATE_COOKIE,
   SENIOR_ID_COOKIE,
   SENIOR_NAME_COOKIE,
 } from './constants';
@@ -46,6 +47,15 @@ export async function getSeniorName(): Promise<string | undefined> {
   return (await cookies()).get(SENIOR_NAME_COOKIE)?.value;
 }
 
+// GET /api/seniors(조회)가 없어 등록 시점의 생년월일을 세션에 보관해 재사용(리포트 나이 계산 등)
+export async function setSeniorBirthDate(birthDate: string): Promise<void> {
+  (await cookies()).set(SENIOR_BIRTHDATE_COOKIE, birthDate, SESSION_COOKIE_OPTIONS);
+}
+
+export async function getSeniorBirthDate(): Promise<string | undefined> {
+  return (await cookies()).get(SENIOR_BIRTHDATE_COOKIE)?.value;
+}
+
 // PATCH /api/seniors/{id}/meal-time는 조회를 지원하지 않아 저장 시점의 값을 세션에 함께 보관해 재사용(홈 화면 식사시간 표시)
 export async function setMealTimes(mealTimes: SessionMealTimes): Promise<void> {
   (await cookies()).set(MEAL_TIMES_COOKIE, JSON.stringify(mealTimes), SESSION_COOKIE_OPTIONS);
@@ -70,5 +80,6 @@ export async function clearSession(): Promise<void> {
   store.delete(ACCESS_TOKEN_COOKIE);
   store.delete(SENIOR_ID_COOKIE);
   store.delete(SENIOR_NAME_COOKIE);
+  store.delete(SENIOR_BIRTHDATE_COOKIE);
   store.delete(MEAL_TIMES_COOKIE);
 }
